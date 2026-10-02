@@ -40,11 +40,11 @@ flowchart LR
 
 ## Phase 0 — Prise en main (0:00–0:30)
 
-- [ ] Cloner, `cp .env.example .env`, `docker compose up -d --build --wait`, `docker compose exec api php bin/create-admin.php equipe`.
-- [ ] `composer test` et `composer smoke` verts **avant** toute modification (base de comparaison).
-- [ ] Lire dans cet ordre : `public/index.php` → `src/app.php` → `Http/Json.php` → `Infrastructure/Database.php` → `Security/*` → `tests/smoke.php`.
-- [ ] Lire [05 — Contrat API](../05-contrat-api.md) en entier. C’est votre cahier des charges, y compris les codes HTTP.
-- [ ] Se répartir (tableau ci-dessus), choisir les relecteurs, convenir des fichiers pour éviter les collisions.
+- [x] Cloner, `cp .env.example .env`, `docker compose up -d --build --wait`, `docker compose exec api php bin/create-admin.php equipe`.
+- [x] `composer test` et `composer smoke` verts **avant** toute modification (base de comparaison).
+- [x] Lire dans cet ordre : `public/index.php` → `src/app.php` → `Http/Json.php` → `Infrastructure/Database.php` → `Security/*` → `tests/smoke.php`.
+- [x] Lire [05 — Contrat API](../05-contrat-api.md) en entier. C’est votre cahier des charges, y compris les codes HTTP.
+- [x] Se répartir (tableau ci-dessus), choisir les relecteurs, convenir des fichiers pour éviter les collisions.
 - [ ] Poser les **questions de décision** au pilotage (à tracer dans [DECISIONS.md](../../livrables/DECISIONS.md)) :
   - propriétés inconnues ou sensibles dans le JSON : rejetées en 422 ou ignorées ? (recommandation : champs sensibles refusés, autres ignorés) ;
   - `remark` vide stocké comme `''` ou `NULL` ;
@@ -55,7 +55,7 @@ flowchart LR
 
 Le pôle données n’a pas fini la migration : **ce travail n’en dépend pas**.
 
-- [ ] Ouvrir une première PR **courte** qui ne fait que déplacer les routes hors de `app.php` (`src/Routes/registrations.php`, `src/Routes/admin.php`) sans changer le comportement. Une fois mergée, A et B ne se marchent plus dessus. `composer smoke` doit rester vert.
+- [x] Ouvrir une première PR **courte** qui ne fait que déplacer les routes hors de `app.php` (`src/Routes/registrations.php`, `src/Routes/admin.php`) sans changer le comportement. Une fois mergée, A et B ne se marchent plus dessus. `composer smoke` doit rester vert.
 - [ ] `src/Registration/Validator.php` : fonction pure `validate(array $body, array $ids, DateTimeImmutable $today)` → `values` + `errors`, sans base ni HTTP.
 - [ ] `tests/validator.php` : une règle du contrat par test (T03, T04, T05, T06, T07 ci-dessous), enregistré dans `composer test`.
 - [ ] **Avant 1:15** : envoyer au front un exemple 422 avec les vrais noms de champs et confirmer que les ID partent en **nombres JSON** (pas `"3"`).

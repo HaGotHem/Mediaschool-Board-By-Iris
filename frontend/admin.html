@@ -1,10 +1,100 @@
 <!doctype html>
-<html lang="fr" data-theme="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Mediaschool Board — Espace équipe</title></head>
-<body class="bg-base-200 text-base-content"><header class="bg-base-100 border-b border-base-300"><div class="max-w-6xl mx-auto px-4 py-5 flex gap-4 items-center justify-between"><h1 class="text-xl font-bold">Mediaschool Board · Espace équipe</h1><a class="link text-sm" href="/">Formulaire public</a></div></header>
-<main class="max-w-6xl mx-auto px-4 py-6"><div id="admin-message" role="alert" hidden></div>
-<section id="login-section" class="card bg-base-100 shadow-sm max-w-md mx-auto"><div class="card-body"><h2 class="card-title">Connexion</h2><p>Réservé à l’équipe du salon.</p><form id="login-form" class="space-y-4 mt-3"><div><label for="username">Identifiant</label><input id="username" name="username" class="input mt-1" autocomplete="username" required></div><div><label for="password">Mot de passe</label><input id="password" name="password" type="password" class="input mt-1" autocomplete="current-password" required></div><button class="btn btn-primary w-full" type="submit">Se connecter</button></form></div></section>
-<section id="dashboard-section" hidden><div class="flex flex-wrap justify-between gap-3 mb-6"><div><h2 class="text-2xl font-bold">Visites du salon</h2><p id="signed-in" class="text-sm"></p></div><button id="logout" class="btn btn-outline">Se déconnecter</button></div>
-<div class="alert alert-info mb-5">À développer : liste paginée, détail, filtres, totaux réels, CSV, PDF et envoi du récapitulatif.</div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"><div class="stat bg-base-100 rounded-box"><div class="stat-title">Visites enregistrées</div><div class="stat-value">—</div><div class="stat-desc">À charger depuis l’API</div></div><div class="stat bg-base-100 rounded-box"><div class="stat-title">Écoles représentées</div><div class="stat-value">—</div></div><div class="stat bg-base-100 rounded-box"><div class="stat-title">Dernière synchronisation</div><div class="stat-value text-lg">—</div></div></div>
-<div class="card bg-base-100 shadow-sm"><div class="card-body"><h3 class="card-title">Point de départ de votre tableau de bord</h3><p>Utilisez les composants card, table, badge, modal et join de daisyUI. Sur mobile, privilégiez des cartes courtes et un bouton « Détails ».</p><button id="load-list" class="btn btn-primary w-fit">Tester l’accès à la liste</button><pre id="list-result" class="text-sm whitespace-pre-wrap"></pre></div></div>
-</section></main><script type="module" src="/src/admin.js"></script></body></html>
+<html lang="fr" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Mediaschool Board — Espace équipe</title>
+  </head>
+  <body class="bg-base-200 text-base-content">
+    <header class="bg-base-100 border-b border-base-300">
+      <div
+        class="max-w-6xl mx-auto px-4 py-5 flex gap-4 items-center justify-between"
+      >
+        <h1 class="text-xl font-bold">Mediaschool Board · Espace équipe</h1>
+        <a class="link text-sm" href="/">Formulaire public</a>
+      </div>
+    </header>
+    <main class="max-w-6xl mx-auto px-4 py-6">
+      <div id="admin-message" role="alert" hidden></div>
+      <section
+        id="login-section"
+        class="card bg-base-100 shadow-sm max-w-md mx-auto"
+      >
+        <div class="card-body">
+          <h2 class="card-title">Connexion</h2>
+          <p>Réservé à l’équipe du salon.</p>
+          <form id="login-form" class="space-y-4 mt-3">
+            <div>
+              <label for="username">Identifiant</label
+              ><input
+                id="username"
+                name="username"
+                class="input mt-1"
+                autocomplete="username"
+                required
+              />
+            </div>
+            <div>
+              <label for="password">Mot de passe</label
+              ><input
+                id="password"
+                name="password"
+                type="password"
+                class="input mt-1"
+                autocomplete="current-password"
+                required
+              />
+            </div>
+            <button class="btn btn-primary w-full" type="submit">
+              Se connecter
+            </button>
+          </form>
+        </div>
+      </section>
+      <section id="dashboard-section" hidden>
+        <div class="flex flex-wrap justify-between gap-3 mb-6">
+          <div>
+            <h2 class="text-2xl font-bold">Visites du salon</h2>
+            <p id="signed-in" class="text-sm"></p>
+          </div>
+          <button id="logout" class="btn btn-outline">Se déconnecter</button>
+        </div>
+        <div class="alert alert-info mb-5">
+          À développer : liste paginée, détail, filtres, totaux réels, CSV, PDF
+          et envoi du récapitulatif.
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="stat bg-base-100 rounded-box">
+            <div class="stat-title">Visites enregistrées</div>
+            <div class="stat-value">—</div>
+            <div class="stat-desc">À charger depuis l’API</div>
+          </div>
+          <div class="stat bg-base-100 rounded-box">
+            <div class="stat-title">Écoles représentées</div>
+            <div class="stat-value">—</div>
+          </div>
+          <div class="stat bg-base-100 rounded-box">
+            <div class="stat-title">Dernière synchronisation</div>
+            <div class="stat-value text-lg">—</div>
+          </div>
+        </div>
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body">
+            <h3 class="card-title">Point de départ de votre tableau de bord</h3>
+            <p>
+              Utilisez les composants card, table, badge, modal et join de
+              daisyUI. Sur mobile, privilégiez des cartes courtes et un bouton «
+              Détails ».
+            </p>
+            <button id="load-list" class="btn btn-primary w-fit">
+              Tester l’accès à la liste
+            </button>
+            <pre id="list-result" class="text-sm whitespace-pre-wrap"></pre>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/src/admin.js"></script>
+  </body>
+</html>

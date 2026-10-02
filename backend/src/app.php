@@ -6,7 +6,6 @@ use Board\Security\{Session, AuthMiddleware, CsrfMiddleware, LoginLimiter};
 use Psr\Http\Message\{ServerRequestInterface as Request, ResponseInterface as Response};
 use Slim\Factory\AppFactory;
 use Slim\Exception\HttpException;
-use Slim\Routing\RouteCollectorProxy;
 
 // Le connecteur est paresseux : une base indisponible donne une erreur HTTP propre.
 $db = static function () { static $connection; return $connection ??= Database::connect(); };
@@ -69,20 +68,7 @@ $app->post('/api/auth/logout', function (): Response {
     return Json::send(['data' => ['authenticated' => false, 'csrf_token' => $_SESSION['csrf_token']]]);
 })->add(new CsrfMiddleware())->add(new AuthMiddleware());
 
-// À réaliser : validation serveur, unicité, insertion, confirmation et limitation applicative.
-// Un 501 volontaire ne doit jamais être remplacé par une fausse confirmation.
-$app->post('/api/registrations', function (): Response {
-    if (!filter_var(getenv('REGISTRATIONS_OPEN') ?: 'false', FILTER_VALIDATE_BOOLEAN)) {
-        return Json::error('REGISTRATIONS_CLOSED', 'Les inscriptions ne sont pas ouvertes.', 503);
-    }
-    return Json::error('NOT_IMPLEMENTED', 'L’enregistrement doit être réalisé par le pôle API.', 501);
-});
-$app->group('/api/admin', function (RouteCollectorProxy $group): void {
-    $todo = fn(): Response => Json::error('NOT_IMPLEMENTED', 'Fonctionnalité à réaliser. Consultez le contrat API.', 501);
-    $group->get('/registrations', $todo);
-    $group->get('/registrations/{id:[0-9]+}', $todo);
-    $group->get('/summary', $todo);
-    $group->get('/exports/{format:csv|pdf}', $todo);
-    $group->post('/summary/email', $todo);
-})->add(new CsrfMiddleware())->add(new AuthMiddleware());
+// Routes métier : plus aucune route ne s'ajoute dans ce fichier.
+(require __DIR__ . '/Routes/registrations.php')($app, $db);
+(require __DIR__ . '/Routes/admin.php')($app, $db);
 return $app;
