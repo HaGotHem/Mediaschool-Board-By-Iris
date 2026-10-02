@@ -35,7 +35,7 @@ Un pôle n’est pas une personne unique et un étudiant peut travailler dans de
 Prérequis : Git et Docker Desktop avec Docker Compose v2. Aucune installation locale de PHP ou PostgreSQL n’est nécessaire.
 
 ```bash
-git clone https://github.com/AstrowareConception/Mediaschool-Board-by-Iris-Nice.git
+git clone https://github.com/HaGotHem/Mediaschool-Board-By-Iris.git
 cd Mediaschool-Board-by-Iris-Nice
 cp .env.example .env
 docker compose up -d --build --wait
