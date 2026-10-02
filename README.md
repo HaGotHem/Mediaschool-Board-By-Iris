@@ -36,7 +36,7 @@ Prérequis : Git et Docker Desktop avec Docker Compose v2. Aucune installation l
 
 ```bash
 git clone https://github.com/HaGotHem/Mediaschool-Board-By-Iris.git
-cd Mediaschool-Board-by-Iris-Nice
+cd Mediaschool-Board-by-Iris
 cp .env.example .env
 docker compose up -d --build --wait
 docker compose exec api php bin/create-admin.php equipe
