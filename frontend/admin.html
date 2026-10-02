@@ -17,10 +17,10 @@
         <a class="btn btn-sm btn-ghost text-white" href="/">Formulaire public</a>
       </div>
     </header>
- 
+
     <main class="max-w-6xl mx-auto px-4 py-8">
       <div id="admin-message" role="alert" hidden></div>
- 
+
       <!-- Connexion -->
       <section id="login-section">
         <div class="card bg-base-100 shadow-xl max-w-3xl mx-auto overflow-hidden md:card-side">
@@ -32,7 +32,7 @@
             </svg>
             <div>
               <h2 class="text-2xl font-bold leading-tight">Retrouvez les visiteurs de votre salon</h2>
-              <p class="mt-3 text-sm opacity-90">
+              <p class="mt-3 text-sm">
                 Consultez les fiches, filtrez par école et exportez le récapitulatif de la journée.
               </p>
             </div>
@@ -42,12 +42,12 @@
             <p class="text-base-content/70">Réservé à l’équipe du salon.</p>
             <form id="login-form" class="space-y-4 mt-4">
               <div>
-                <label for="username" class="font-medium">Identifiant</label>
+                <label for="username" class="block font-medium">Identifiant</label>
                 <input id="username" name="username" class="input input-bordered w-full mt-1"
                   autocomplete="username" required />
               </div>
               <div>
-                <label for="password" class="font-medium">Mot de passe</label>
+                <label for="password" class="block font-medium">Mot de passe</label>
                 <input id="password" name="password" type="password"
                   class="input input-bordered w-full mt-1" autocomplete="current-password" required />
               </div>
@@ -56,7 +56,7 @@
           </div>
         </div>
       </section>
- 
+
       <!-- Tableau de bord -->
       <section id="dashboard-section" hidden>
         <div class="flex flex-wrap items-end justify-between gap-3 mb-6">
@@ -66,12 +66,12 @@
           </div>
           <button id="logout" class="btn btn-outline btn-secondary">Se déconnecter</button>
         </div>
- 
+
         <!-- Statistiques -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div class="card bg-base-100 shadow-sm border-l-4 border-primary">
             <div class="card-body flex-row items-center gap-4 p-5">
-              <div class="rounded-full bg-primary/10 text-primary p-3">
+              <div class="rounded-full bg-primary text-primary-content p-3">
                 <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
@@ -86,7 +86,7 @@
           </div>
           <div class="card bg-base-100 shadow-sm border-l-4 border-secondary">
             <div class="card-body flex-row items-center gap-4 p-5">
-              <div class="rounded-full bg-secondary/10 text-secondary p-3">
+              <div class="rounded-full bg-secondary text-secondary-content p-3">
                 <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M22 10 12 5 2 10l10 5 10-5z" /><path d="M6 12v5c3 2 9 2 12 0v-5" />
@@ -98,9 +98,9 @@
               </div>
             </div>
           </div>
-          <div class="card bg-base-100 shadow-sm border-l-4 border-accent">
+          <div class="card bg-base-100 shadow-sm border-l-4 border-base-content">
             <div class="card-body flex-row items-center gap-4 p-5">
-              <div class="rounded-full bg-accent/10 text-accent p-3">
+              <div class="rounded-full bg-base-content text-base-100 p-3">
                 <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
@@ -113,7 +113,7 @@
             </div>
           </div>
         </div>
- 
+
         <!-- Liste des visites -->
         <div class="card bg-base-100 shadow-md">
           <div class="card-body gap-5">
@@ -127,7 +127,7 @@
                 </button>
               </div>
             </div>
- 
+
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <input id="filter-search" type="search" class="input input-bordered w-full sm:col-span-2"
                 placeholder="Rechercher un nom ou un e-mail" aria-label="Rechercher une visite" />
@@ -135,7 +135,7 @@
                 <option value="">Toutes les écoles</option>
               </select>
             </div>
- 
+
             <div class="overflow-x-auto rounded-box border border-base-300">
               <table class="table">
                 <thead class="bg-base-200">
@@ -163,23 +163,25 @@
                 </tbody>
               </table>
             </div>
-            </div>
           </div>
         </div>
       </section>
     </main>
+
+    <!-- Fiche détaillée d'une visite -->
     <dialog id="visit-dialog" class="modal">
-        <div class="modal-box">
-            <h3 id="visit-title" class="text-lg font-bold text-secondary"></h3>
-            <dl id="visit-details" class="mt-4 grid grid-cols-3 gap-x-4 gap-y-3 text-sm"></dl>
-            <div class="modal-action">
-            <form method="dialog">
-                <button class="btn btn-secondary">Fermer</button>
-            </form>
-            </div>
+      <div class="modal-box">
+        <h3 id="visit-title" class="text-lg font-bold text-secondary"></h3>
+        <dl id="visit-details" class="mt-4 grid grid-cols-3 gap-x-4 gap-y-3 text-sm"></dl>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn btn-secondary">Fermer</button>
+          </form>
         </div>
-        <form method="dialog" class="modal-backdrop"><button aria-label="Fermer">fermer</button></form>
-        </dialog>
+      </div>
+      <form method="dialog" class="modal-backdrop"><button aria-label="Fermer">fermer</button></form>
+    </dialog>
+
     <script type="module" src="/src/admin.js"></script>
   </body>
 </html>
