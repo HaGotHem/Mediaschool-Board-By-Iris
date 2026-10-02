@@ -1,9 +1,61 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-  themes: light --default;
+  themes: mediaschool --default;
 }
-@theme { --font-sans: system-ui, sans-serif; }
-body { min-height: 100vh; }
-label { font-weight: 600; }
-:focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
-.input, .select, .textarea { width: 100%; }
+
+@plugin "daisyui/theme" {
+  name: "mediaschool";
+  default: true;
+  color-scheme: light;
+
+  --color-base-100: #ffffff;
+  --color-base-200: #f6f8f7;
+  --color-base-300: #d5ddd9;
+  --color-base-content: #2a3f36;
+
+  /* Corail = action principale */
+  --color-primary: #f08589;
+  --color-primary-content: #2a3f36;
+
+  /* Vert MediaSchool = couleur de marque */
+  --color-secondary: #3e5b4f;
+  --color-secondary-content: #ffffff;
+
+  --color-accent: #fdeced;
+  --color-accent-content: #2a3f36;
+
+  --color-neutral: #3e5b4f;
+  --color-neutral-content: #ffffff;
+
+  --color-info: #3e5b4f;
+  --color-info-content: #ffffff;
+  --color-success: #2e7d5b;
+  --color-success-content: #ffffff;
+  --color-warning: #e8a33d;
+  --color-warning-content: #2a3f36;
+  --color-error: #b3261e;
+  --color-error-content: #ffffff;
+
+  --radius-selector: 1rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.75rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@theme {
+  --font-sans: system-ui, sans-serif;
+}
+body {
+  min-height: 100vh;
+}
+label {
+  font-weight: 600;
+}
+.input:focus, .select:focus, .textarea:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
