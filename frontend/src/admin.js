@@ -4,23 +4,27 @@ const message = document.querySelector("#admin-message");
 const login = document.querySelector("#login-section");
 const dashboard = document.querySelector("#dashboard-section");
 const form = document.querySelector("#login-form");
+
 function display(user) {
   login.hidden = Boolean(user);
   dashboard.hidden = !user;
   document.querySelector("#signed-in").textContent = user
     ? `Connecté : ${user.username}`
     : "";
+  // Les exports ne dépendent pas de la liste chargée : actifs dès la connexion
+  for (const id of ["#export-csv", "#export-pdf"]) {
+    document.querySelector(id).disabled = !user;
+  }
   if (user) loadStats();
 }
+
 async function loadStats() {
   try {
     const stats = await api("/admin/stats");
     const schools = new Set(stats.groups.map((group) => group.school_id));
-    document.querySelector("#stat-total").textContent = stats.total;
-    document.querySelector("#stat-groups").textContent =
-      `${stats.groups.length} combinaison(s) école / niveau`;
+    document.querySelector("#stat-visits").textContent = stats.total;
     document.querySelector("#stat-schools").textContent = schools.size;
-    document.querySelector("#stat-generated").textContent = new Date(
+    document.querySelector("#stat-sync").textContent = new Date(
       stats.generated_at,
     ).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
   } catch (error) {
@@ -28,12 +32,14 @@ async function loadStats() {
     showMessage(message, error.message);
   }
 }
+
 try {
   const session = await api("/auth/session");
   display(session.user);
 } catch (error) {
   showMessage(message, error.message);
 }
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const button = form.querySelector("button");
@@ -52,15 +58,17 @@ form.addEventListener("submit", async (event) => {
     button.disabled = false;
   }
 });
+
 document.querySelector("#logout").addEventListener("click", async () => {
   try {
     await api("/auth/logout", { method: "POST" });
     display(null);
-    document.querySelector("#list-result").textContent = "";
+    resetList();
   } catch (error) {
     showMessage(message, error.message);
   }
 });
+
 const body = document.querySelector("#visits-body");
 const emptyState = body.innerHTML; // l'état « Aucune visite chargée » du HTML
 const searchInput = document.querySelector("#filter-search");
@@ -69,7 +77,8 @@ const dialog = document.querySelector("#visit-dialog");
 let visits = [];
 
 // --- Adapter ici si les champs de l'API sont différents ---
-const pick = (...values) => values.find((v) => v !== undefined && v !== null && v !== "");
+const pick = (...values) =>
+  values.find((v) => v !== undefined && v !== null && v !== "");
 const label = (r, key) =>
   pick(
     r[`${key}_label`],
@@ -96,7 +105,9 @@ function normalize(r) {
 // -----------------------------------------------------------
 
 const formatDate = (value) =>
-  /^\d{4}-\d{2}-\d{2}/.test(value) ? value.slice(0, 10).split("-").reverse().join("/") : value;
+  /^\d{4}-\d{2}-\d{2}/.test(value)
+    ? value.slice(0, 10).split("-").reverse().join("/")
+    : value;
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -117,7 +128,9 @@ function visitRow(v) {
   const tr = el("tr", "hover");
 
   const who = el("td");
-  who.append(el("div", "font-medium", `${v.firstName} ${v.lastName}`.trim() || "—"));
+  who.append(
+    el("div", "font-medium", `${v.firstName} ${v.lastName}`.trim() || "—"),
+  );
   who.append(el("div", "text-sm text-base-content/70", v.email));
 
   const school = el("td", "", v.school);
@@ -128,7 +141,10 @@ function visitRow(v) {
   const actions = el("td", "text-right");
   const btn = el("button", "btn btn-ghost btn-sm text-secondary", "Voir");
   btn.type = "button";
-  btn.setAttribute("aria-label", `Voir la fiche de ${v.firstName} ${v.lastName}`);
+  btn.setAttribute(
+    "aria-label",
+    `Voir la fiche de ${v.firstName} ${v.lastName}`,
+  );
   btn.addEventListener("click", () => openDetails(v));
   actions.append(btn);
 
@@ -142,10 +158,13 @@ function render() {
   const rows = visits.filter(
     (v) =>
       (!school || v.school === school) &&
-      (!q || `${v.firstName} ${v.lastName} ${v.email}`.toLowerCase().includes(q)),
+      (!q ||
+        `${v.firstName} ${v.lastName} ${v.email}`.toLowerCase().includes(q)),
   );
   body.replaceChildren(
-    ...(rows.length ? rows.map(visitRow) : [messageRow("Aucune visite ne correspond à votre recherche.")]),
+    ...(rows.length
+      ? rows.map(visitRow)
+      : [messageRow("Aucune visite ne correspond à votre recherche.")]),
   );
 }
 
@@ -177,10 +196,11 @@ function updateStats() {
   document.querySelector("#stat-schools").textContent = new Set(
     visits.map((v) => v.school).filter((s) => s !== "—"),
   ).size;
-  document.querySelector("#stat-sync").textContent = new Date().toLocaleTimeString(
-    "fr-FR",
-    { hour: "2-digit", minute: "2-digit" },
-  );
+  document.querySelector("#stat-sync").textContent =
+    new Date().toLocaleTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 }
 
 function fillSchoolFilter() {
@@ -203,7 +223,9 @@ function resetList() {
 async function loadList() {
   try {
     const data = await api("/admin/registrations");
-    const list = Array.isArray(data) ? data : (data.registrations ?? data.items ?? []);
+    const list = Array.isArray(data)
+      ? data
+      : (data.registrations ?? data.items ?? []);
     visits = list.map(normalize);
     fillSchoolFilter();
     updateStats();
@@ -220,3 +242,47 @@ body.addEventListener("click", (event) => {
 });
 searchInput.addEventListener("input", render);
 schoolSelect.addEventListener("change", render);
+
+async function downloadFile(buttonId, path, filename) {
+  const button = document.querySelector(buttonId);
+  button.disabled = true;
+  try {
+    const response = await fetch(`/api/admin/exports/${path}`, {
+      credentials: "same-origin",
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      const error = new Error(
+        payload.error?.message || `Export impossible (${response.status}).`,
+      );
+      error.status = response.status;
+      throw error;
+    }
+    const url = URL.createObjectURL(await response.blob());
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (error) {
+    if (error.status === 401) display(null);
+    showMessage(message, error.message);
+  } finally {
+    // Ne pas réactiver le bouton si on a été déconnecté entre-temps
+    button.disabled = dashboard.hidden;
+  }
+}
+
+// CSV = liste complète des inscrits ; PDF = récapitulatif agrégé
+document
+  .querySelector("#export-csv")
+  .addEventListener("click", () =>
+    downloadFile("#export-csv", "registrations/csv", "inscrits-salon.csv"),
+  );
+document
+  .querySelector("#export-pdf")
+  .addEventListener("click", () =>
+    downloadFile("#export-pdf", "pdf", "recap-salon.pdf"),
+  );
