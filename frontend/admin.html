@@ -1,9 +1,5 @@
 <!doctype html>
-<<<<<<< HEAD
-<html lang="fr" data-theme="light">
-=======
 <html lang="fr" data-theme="mediaschool">
->>>>>>> origine/Frontend
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -29,11 +25,7 @@
           <h2 class="card-title">Connexion</h2>
           <p>Réservé à l’équipe du salon.</p>
           <form id="login-form" class="space-y-4 mt-3">
-<<<<<<< HEAD
-            <div>
-=======
             <div class="flex flex-col">
->>>>>>> origine/Frontend
               <label for="username">Identifiant</label
               ><input
                 id="username"
@@ -75,16 +67,16 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div class="stat bg-base-100 rounded-box">
             <div class="stat-title">Visites enregistrées</div>
-            <div class="stat-value">—</div>
-            <div class="stat-desc">À charger depuis l’API</div>
+            <div id="stat-total" class="stat-value">—</div>
+            <div id="stat-groups" class="stat-desc"></div>
           </div>
           <div class="stat bg-base-100 rounded-box">
             <div class="stat-title">Écoles représentées</div>
-            <div class="stat-value">—</div>
+            <div id="stat-schools" class="stat-value">—</div>
           </div>
           <div class="stat bg-base-100 rounded-box">
             <div class="stat-title">Dernière synchronisation</div>
-            <div class="stat-value text-lg">—</div>
+            <div id="stat-generated" class="stat-value text-lg">—</div>
           </div>
         </div>
         <div class="card bg-base-100 shadow-sm">

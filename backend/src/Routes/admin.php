@@ -23,8 +23,24 @@ return static function (App $app, Closure $db): void {
             return Json::send(['data' => $repo->list($filters)]);
         });
 
+        // API-04 : synthèse par école / niveau, mêmes filtres que la liste. /stats est un alias de /summary.
+        $summary = function (Request $request) use ($db): Response {
+            ['filters' => $filters, 'errors' => $errors] = Filters::fromQuery($request->getQueryParams());
+            if ($errors !== []) {
+                return Json::error('VALIDATION_FAILED', 'Paramètres de synthèse invalides.', 422, $errors);
+            }
+            $eventId = (int)(getenv('EVENT_ID') ?: 1);
+            return Json::send(['data' => [
+                'event' => $db()->get('events', ['id [Int]', 'label'], ['id' => $eventId]),
+                'filters' => ['school_id' => $filters->schoolId, 'entry_level_id' => $filters->entryLevelId],
+                ...(new Repository($db(), $eventId))->summary($filters),
+                'generated_at' => (new DateTimeImmutable('now', new DateTimeZone('Europe/Paris')))->format(DATE_ATOM),
+            ]]);
+        };
+        $group->get('/summary', $summary);
+        $group->get('/stats', $summary);
+
         $group->get('/registrations/{id:[0-9]+}', $todo);      // API-03 : détail
-        $group->get('/summary', $todo);                        // API-04 : synthèse
         $group->get('/exports/{format:csv|pdf}', $todo);       // EXP-01/02
         $group->post('/summary/email', $todo);                 // EXP-03
     })->add(new CsrfMiddleware())->add(new AuthMiddleware());

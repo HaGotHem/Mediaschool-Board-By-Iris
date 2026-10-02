@@ -67,16 +67,7 @@ final class Repository
      */
     public function list(Filters $filters): array
     {
-        $where = 'r.event_id = :event_id';
-        $params = [':event_id' => $this->eventId];
-        if ($filters->schoolId !== null) {
-            $where .= ' AND r.school_id = :school_id';
-            $params[':school_id'] = $filters->schoolId;
-        }
-        if ($filters->entryLevelId !== null) {
-            $where .= ' AND r.entry_level_id = :entry_level_id';
-            $params[':entry_level_id'] = $filters->entryLevelId;
-        }
+        [$where, $params] = $this->where($filters);
 
         $pdo = $this->db->pdo;
         // Total calculé avec exactement les mêmes filtres que la page.
@@ -118,6 +109,57 @@ final class Repository
             'total' => $total,
             'pages' => max(1, (int)ceil($total / $filters->perPage)),
         ]];
+    }
+
+    /**
+     * Synthèse du salon actif par école et niveau. Seule source pour le JSON, les exports et le mail :
+     * le total est la somme des groupes du même résultat.
+     *
+     * @return array{groups: list<array{school_id:int, school:string, entry_level_id:int, entry_level:string, count:int}>, total:int}
+     */
+    public function summary(Filters $filters): array
+    {
+        [$where, $params] = $this->where($filters);
+        $select = $this->db->pdo->prepare(
+            "SELECT s.id AS school_id, s.label AS school, l.id AS entry_level_id, l.label AS entry_level, count(*) AS count
+             FROM registrations r
+             JOIN schools s ON s.id = r.school_id
+             JOIN entry_levels l ON l.id = r.entry_level_id
+             WHERE $where
+             GROUP BY s.id, s.label, l.id, l.label
+             ORDER BY s.label, l.label"
+        );
+        $select->execute($params);
+
+        $groups = array_map(static fn(array $row): array => [
+            'school_id' => (int)$row['school_id'],
+            'school' => $row['school'],
+            'entry_level_id' => (int)$row['entry_level_id'],
+            'entry_level' => $row['entry_level'],
+            'count' => (int)$row['count'],
+        ], $select->fetchAll(PDO::FETCH_ASSOC));
+
+        return ['groups' => $groups, 'total' => array_sum(array_column($groups, 'count'))];
+    }
+
+    /**
+     * Périmètre commun à la liste et à la synthèse : salon actif + filtres école / niveau.
+     *
+     * @return array{0:string, 1:array<string,int>}
+     */
+    private function where(Filters $filters): array
+    {
+        $where = 'r.event_id = :event_id';
+        $params = [':event_id' => $this->eventId];
+        if ($filters->schoolId !== null) {
+            $where .= ' AND r.school_id = :school_id';
+            $params[':school_id'] = $filters->schoolId;
+        }
+        if ($filters->entryLevelId !== null) {
+            $where .= ' AND r.entry_level_id = :entry_level_id';
+            $params[':entry_level_id'] = $filters->entryLevelId;
+        }
+        return [$where, $params];
     }
 
     /** @param array<string,mixed> $v */

@@ -10,6 +10,23 @@ function display(user) {
   document.querySelector("#signed-in").textContent = user
     ? `Connecté : ${user.username}`
     : "";
+  if (user) loadStats();
+}
+async function loadStats() {
+  try {
+    const stats = await api("/admin/stats");
+    const schools = new Set(stats.groups.map((group) => group.school_id));
+    document.querySelector("#stat-total").textContent = stats.total;
+    document.querySelector("#stat-groups").textContent =
+      `${stats.groups.length} combinaison(s) école / niveau`;
+    document.querySelector("#stat-schools").textContent = schools.size;
+    document.querySelector("#stat-generated").textContent = new Date(
+      stats.generated_at,
+    ).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  } catch (error) {
+    if (error.status === 401) display(null);
+    showMessage(message, error.message);
+  }
 }
 try {
   const session = await api("/auth/session");
