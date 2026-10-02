@@ -61,16 +61,162 @@ document.querySelector("#logout").addEventListener("click", async () => {
     showMessage(message, error.message);
   }
 });
-document.querySelector("#load-list").addEventListener("click", async () => {
+const body = document.querySelector("#visits-body");
+const emptyState = body.innerHTML; // l'état « Aucune visite chargée » du HTML
+const searchInput = document.querySelector("#filter-search");
+const schoolSelect = document.querySelector("#filter-school");
+const dialog = document.querySelector("#visit-dialog");
+let visits = [];
+
+// --- Adapter ici si les champs de l'API sont différents ---
+const pick = (...values) => values.find((v) => v !== undefined && v !== null && v !== "");
+const label = (r, key) =>
+  pick(
+    r[`${key}_label`],
+    r[key]?.label,
+    typeof r[key] === "string" ? r[key] : undefined,
+    "—",
+  );
+
+function normalize(r) {
+  return {
+    reference: pick(r.reference, r.id, "—"),
+    lastName: r.last_name ?? "",
+    firstName: r.first_name ?? "",
+    email: r.email ?? "",
+    phone: r.phone ?? "",
+    birthDate: r.birth_date ?? "",
+    currentClass: label(r, "current_class"),
+    school: label(r, "school"),
+    level: label(r, "entry_level"),
+    specialty: label(r, "specialty"),
+    remark: r.remark ?? "",
+  };
+}
+// -----------------------------------------------------------
+
+const formatDate = (value) =>
+  /^\d{4}-\d{2}-\d{2}/.test(value) ? value.slice(0, 10).split("-").reverse().join("/") : value;
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function messageRow(text) {
+  const tr = el("tr");
+  const td = el("td", "py-10 text-center text-base-content/70", text);
+  td.colSpan = 4;
+  tr.append(td);
+  return tr;
+}
+
+function visitRow(v) {
+  const tr = el("tr", "hover");
+
+  const who = el("td");
+  who.append(el("div", "font-medium", `${v.firstName} ${v.lastName}`.trim() || "—"));
+  who.append(el("div", "text-sm text-base-content/70", v.email));
+
+  const school = el("td", "", v.school);
+
+  const level = el("td");
+  level.append(el("span", "badge badge-outline badge-secondary", v.level));
+
+  const actions = el("td", "text-right");
+  const btn = el("button", "btn btn-ghost btn-sm text-secondary", "Voir");
+  btn.type = "button";
+  btn.setAttribute("aria-label", `Voir la fiche de ${v.firstName} ${v.lastName}`);
+  btn.addEventListener("click", () => openDetails(v));
+  actions.append(btn);
+
+  tr.append(who, school, level, actions);
+  return tr;
+}
+
+function render() {
+  const q = searchInput.value.trim().toLowerCase();
+  const school = schoolSelect.value;
+  const rows = visits.filter(
+    (v) =>
+      (!school || v.school === school) &&
+      (!q || `${v.firstName} ${v.lastName} ${v.email}`.toLowerCase().includes(q)),
+  );
+  body.replaceChildren(
+    ...(rows.length ? rows.map(visitRow) : [messageRow("Aucune visite ne correspond à votre recherche.")]),
+  );
+}
+
+function openDetails(v) {
+  document.querySelector("#visit-title").textContent =
+    `${v.firstName} ${v.lastName}`.trim();
+  const fields = [
+    ["Référence", v.reference],
+    ["E-mail", v.email],
+    ["Téléphone", v.phone],
+    ["Naissance", formatDate(v.birthDate)],
+    ["Classe actuelle", v.currentClass],
+    ["École visée", v.school],
+    ["Niveau", v.level],
+    ["Spécialité", v.specialty],
+    ["Remarque", v.remark || "—"],
+  ];
+  const dl = document.querySelector("#visit-details");
+  dl.replaceChildren();
+  for (const [name, value] of fields) {
+    dl.append(el("dt", "text-base-content/70", name));
+    dl.append(el("dd", "col-span-2 font-medium break-words", value || "—"));
+  }
+  dialog.showModal();
+}
+
+function updateStats() {
+  document.querySelector("#stat-visits").textContent = visits.length;
+  document.querySelector("#stat-schools").textContent = new Set(
+    visits.map((v) => v.school).filter((s) => s !== "—"),
+  ).size;
+  document.querySelector("#stat-sync").textContent = new Date().toLocaleTimeString(
+    "fr-FR",
+    { hour: "2-digit", minute: "2-digit" },
+  );
+}
+
+function fillSchoolFilter() {
+  const schools = [...new Set(visits.map((v) => v.school))].sort((a, b) =>
+    a.localeCompare(b, "fr"),
+  );
+  schoolSelect.replaceChildren(new Option("Toutes les écoles", ""));
+  for (const s of schools) schoolSelect.append(new Option(s, s));
+}
+
+function resetList() {
+  visits = [];
+  body.innerHTML = emptyState;
+  searchInput.value = "";
+  schoolSelect.replaceChildren(new Option("Toutes les écoles", ""));
+  for (const id of ["#stat-visits", "#stat-schools", "#stat-sync"])
+    document.querySelector(id).textContent = "—";
+}
+
+async function loadList() {
   try {
     const data = await api("/admin/registrations");
-    document.querySelector("#list-result").textContent = JSON.stringify(
-      data,
-      null,
-      2,
-    );
+    const list = Array.isArray(data) ? data : (data.registrations ?? data.items ?? []);
+    visits = list.map(normalize);
+    fillSchoolFilter();
+    updateStats();
+    render();
   } catch (error) {
     if (error.status === 401) display(null);
     showMessage(message, error.message);
   }
+}
+
+// Délégation : le bouton « Charger la liste » est recréé quand on se déconnecte
+body.addEventListener("click", (event) => {
+  if (event.target.closest("#load-list")) loadList();
 });
+searchInput.addEventListener("input", render);
+schoolSelect.addEventListener("change", render);

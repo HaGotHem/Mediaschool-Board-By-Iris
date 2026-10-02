@@ -1,101 +1,185 @@
 <!doctype html>
 <html lang="fr" data-theme="mediaschool">
-<html lang="fr" data-theme="mediaschool">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
     <title>Mediaschool Board — Espace équipe</title>
   </head>
-  <body class="bg-base-200 text-base-content">
-    <header class="bg-base-100 border-b border-base-300">
-      <div
-        class="max-w-6xl mx-auto px-4 py-5 flex gap-4 items-center justify-between"
-      >
-        <h1 class="text-xl font-bold">Mediaschool Board · Espace équipe</h1>
-        <a class="link text-sm" href="/">Formulaire public</a>
+  <body class="bg-base-200 text-base-content min-h-screen">
+    <header class="bg-secondary">
+      <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <img class="h-9" src="./logo/ms_logo_cmjn_blanc_1.png" alt="Logo Mediaschool" />
+          <span class="hidden sm:block h-6 w-px bg-white/30"></span>
+          <h1 class="hidden sm:block text-white font-semibold">Espace équipe du salon</h1>
+        </div>
+        <a class="btn btn-sm btn-ghost text-white" href="/">Formulaire public</a>
       </div>
     </header>
-    <main class="max-w-6xl mx-auto px-4 py-6">
+ 
+    <main class="max-w-6xl mx-auto px-4 py-8">
       <div id="admin-message" role="alert" hidden></div>
-      <section
-        id="login-section"
-        class="card bg-base-100 shadow-sm max-w-md mx-auto"
-      >
-        <div class="card-body">
-          <h2 class="card-title">Connexion</h2>
-          <p>Réservé à l’équipe du salon.</p>
-          <form id="login-form" class="space-y-4 mt-3">
-            <div class="flex flex-col">
-              <label for="username">Identifiant</label
-              ><input
-                id="username"
-                name="username"
-                class="input mt-1"
-                autocomplete="username"
-                required
-              />
-            </div>
+ 
+      <!-- Connexion -->
+      <section id="login-section">
+        <div class="card bg-base-100 shadow-xl max-w-3xl mx-auto overflow-hidden md:card-side">
+          <div class="bg-primary text-primary-content p-8 md:w-5/12 flex flex-col justify-between gap-6">
+            <svg class="size-12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="4" y="11" width="16" height="10" rx="2" />
+              <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+            </svg>
             <div>
-              <label for="password">Mot de passe</label
-              ><input
-                id="password"
-                name="password"
-                type="password"
-                class="input mt-1"
-                autocomplete="current-password"
-                required
-              />
+              <h2 class="text-2xl font-bold leading-tight">Retrouvez les visiteurs de votre salon</h2>
+              <p class="mt-3 text-sm opacity-90">
+                Consultez les fiches, filtrez par école et exportez le récapitulatif de la journée.
+              </p>
             </div>
-            <button class="btn btn-primary w-full" type="submit">
-              Se connecter
-            </button>
-          </form>
+          </div>
+          <div class="card-body md:w-7/12 p-8 justify-center">
+            <h2 class="card-title text-2xl">Connexion</h2>
+            <p class="text-base-content/70">Réservé à l’équipe du salon.</p>
+            <form id="login-form" class="space-y-4 mt-4">
+              <div>
+                <label for="username" class="font-medium">Identifiant</label>
+                <input id="username" name="username" class="input input-bordered w-full mt-1"
+                  autocomplete="username" required />
+              </div>
+              <div>
+                <label for="password" class="font-medium">Mot de passe</label>
+                <input id="password" name="password" type="password"
+                  class="input input-bordered w-full mt-1" autocomplete="current-password" required />
+              </div>
+              <button class="btn btn-primary w-full min-h-12" type="submit">Se connecter</button>
+            </form>
+          </div>
         </div>
       </section>
+ 
+      <!-- Tableau de bord -->
       <section id="dashboard-section" hidden>
-        <div class="flex flex-wrap justify-between gap-3 mb-6">
+        <div class="flex flex-wrap items-end justify-between gap-3 mb-6">
           <div>
-            <h2 class="text-2xl font-bold">Visites du salon</h2>
-            <p id="signed-in" class="text-sm"></p>
+            <h2 class="text-3xl font-bold text-secondary">Visites du salon</h2>
+            <p id="signed-in" class="text-sm text-base-content/70 mt-1"></p>
           </div>
-          <button id="logout" class="btn btn-outline">Se déconnecter</button>
+          <button id="logout" class="btn btn-outline btn-secondary">Se déconnecter</button>
         </div>
-        <div class="alert alert-info mb-5">
-          À développer : liste paginée, détail, filtres, totaux réels, CSV, PDF
-          et envoi du récapitulatif.
+ 
+        <!-- Statistiques -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div class="card bg-base-100 shadow-sm border-l-4 border-primary">
+            <div class="card-body flex-row items-center gap-4 p-5">
+              <div class="rounded-full bg-primary/10 text-primary p-3">
+                <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm text-base-content/70">Visites enregistrées</p>
+                <p id="stat-visits" class="text-3xl font-bold">—</p>
+              </div>
+            </div>
+          </div>
+          <div class="card bg-base-100 shadow-sm border-l-4 border-secondary">
+            <div class="card-body flex-row items-center gap-4 p-5">
+              <div class="rounded-full bg-secondary/10 text-secondary p-3">
+                <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M22 10 12 5 2 10l10 5 10-5z" /><path d="M6 12v5c3 2 9 2 12 0v-5" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm text-base-content/70">Écoles représentées</p>
+                <p id="stat-schools" class="text-3xl font-bold">—</p>
+              </div>
+            </div>
+          </div>
+          <div class="card bg-base-100 shadow-sm border-l-4 border-accent">
+            <div class="card-body flex-row items-center gap-4 p-5">
+              <div class="rounded-full bg-accent/10 text-accent p-3">
+                <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm text-base-content/70">Dernière synchronisation</p>
+                <p id="stat-sync" class="text-xl font-bold">—</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div class="stat bg-base-100 rounded-box">
-            <div class="stat-title">Visites enregistrées</div>
-            <div id="stat-total" class="stat-value">—</div>
-            <div id="stat-groups" class="stat-desc"></div>
-          </div>
-          <div class="stat bg-base-100 rounded-box">
-            <div class="stat-title">Écoles représentées</div>
-            <div id="stat-schools" class="stat-value">—</div>
-          </div>
-          <div class="stat bg-base-100 rounded-box">
-            <div class="stat-title">Dernière synchronisation</div>
-            <div id="stat-generated" class="stat-value text-lg">—</div>
-          </div>
-        </div>
-        <div class="card bg-base-100 shadow-sm">
-          <div class="card-body">
-            <h3 class="card-title">Point de départ de votre tableau de bord</h3>
-            <p>
-              Utilisez les composants card, table, badge, modal et join de
-              daisyUI. Sur mobile, privilégiez des cartes courtes et un bouton «
-              Détails ».
-            </p>
-            <button id="load-list" class="btn btn-primary w-fit">
-              Tester l’accès à la liste
-            </button>
-            <pre id="list-result" class="text-sm whitespace-pre-wrap"></pre>
+ 
+        <!-- Liste des visites -->
+        <div class="card bg-base-100 shadow-md">
+          <div class="card-body gap-5">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <h3 class="card-title">Liste des visites</h3>
+              <div class="flex flex-wrap gap-2">
+                <button id="export-csv" class="btn btn-sm btn-outline" type="button" disabled>CSV</button>
+                <button id="export-pdf" class="btn btn-sm btn-outline" type="button" disabled>PDF</button>
+                <button id="send-recap" class="btn btn-sm btn-secondary" type="button" disabled>
+                  Envoyer le récapitulatif
+                </button>
+              </div>
+            </div>
+ 
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <input id="filter-search" type="search" class="input input-bordered w-full sm:col-span-2"
+                placeholder="Rechercher un nom ou un e-mail" aria-label="Rechercher une visite" />
+              <select id="filter-school" class="select select-bordered w-full" aria-label="Filtrer par école">
+                <option value="">Toutes les écoles</option>
+              </select>
+            </div>
+ 
+            <div class="overflow-x-auto rounded-box border border-base-300">
+              <table class="table">
+                <thead class="bg-base-200">
+                  <tr>
+                    <th>Visiteur</th>
+                    <th>École visée</th>
+                    <th>Niveau</th>
+                    <th class="text-right">Détails</th>
+                  </tr>
+                </thead>
+                <tbody id="visits-body">
+                  <tr>
+                    <td colspan="4">
+                      <div class="flex flex-col items-center gap-3 py-10 text-center">
+                        <p class="font-medium">Aucune visite chargée</p>
+                        <p class="text-sm text-base-content/70 max-w-sm">
+                          Chargez la liste pour afficher les visiteurs enregistrés sur le salon.
+                        </p>
+                        <button id="load-list" class="btn btn-primary" type="button">
+                          Charger la liste
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            </div>
           </div>
         </div>
       </section>
     </main>
+    <dialog id="visit-dialog" class="modal">
+        <div class="modal-box">
+            <h3 id="visit-title" class="text-lg font-bold text-secondary"></h3>
+            <dl id="visit-details" class="mt-4 grid grid-cols-3 gap-x-4 gap-y-3 text-sm"></dl>
+            <div class="modal-action">
+            <form method="dialog">
+                <button class="btn btn-secondary">Fermer</button>
+            </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button aria-label="Fermer">fermer</button></form>
+        </dialog>
     <script type="module" src="/src/admin.js"></script>
   </body>
 </html>
