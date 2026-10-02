@@ -24,6 +24,31 @@ final class SummaryExport
         rewind($stream); $content = stream_get_contents($stream); fclose($stream);
         return $content;
     }
+    public static function registrationsCsv(array $rows): string
+    {
+        $stream = fopen('php://temp', 'w+');
+        fwrite($stream, "\xEF\xBB\xBF"); // BOM pour qu'Excel lise bien l'UTF-8
+        fputcsv($stream, [
+            'Inscrit le', 'Nom', 'Prénom', 'Date de naissance', 'Téléphone', 'E-mail',
+            'Classe actuelle', 'École visée', 'Niveau', 'Spécialité', 'Remarque',
+            'Date du RDV', 'Créneau', 'Conseiller',
+        ], ';', '"', '');
+        foreach ($rows as $r) {
+            fputcsv($stream, array_map(
+                fn($v) => self::safeCell((string)($v ?? '')),
+                [
+                    $r['created_at'], $r['last_name'], $r['first_name'], $r['birth_date'],
+                    $r['phone'], $r['email'], $r['current_class'], $r['school'],
+                    $r['entry_level'], $r['specialty'], $r['remark'],
+                    $r['appointment_date'], $r['time_slot'], $r['advisor'],
+                ]
+            ), ';', '"', '');
+        }
+        rewind($stream);
+        $content = stream_get_contents($stream);
+        fclose($stream);
+        return $content;
+    }
     public static function pdf(string $event, array $groups, string $scope = 'Toutes les écoles et tous les niveaux'): string
     {
         $escape = fn(string $text): string => htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
