@@ -60,6 +60,66 @@ final class Repository
         }
     }
 
+    /**
+     * Liste paginée du salon actif. Pas de téléphone, e-mail ni date de naissance (réservés au détail).
+     *
+     * @return array{items: list<array<string,mixed>>, pagination: array{page:int, per_page:int, total:int, pages:int}}
+     */
+    public function list(Filters $filters): array
+    {
+        $where = 'r.event_id = :event_id';
+        $params = [':event_id' => $this->eventId];
+        if ($filters->schoolId !== null) {
+            $where .= ' AND r.school_id = :school_id';
+            $params[':school_id'] = $filters->schoolId;
+        }
+        if ($filters->entryLevelId !== null) {
+            $where .= ' AND r.entry_level_id = :entry_level_id';
+            $params[':entry_level_id'] = $filters->entryLevelId;
+        }
+
+        $pdo = $this->db->pdo;
+        // Total calculé avec exactement les mêmes filtres que la page.
+        $count = $pdo->prepare("SELECT count(*) FROM registrations r WHERE $where");
+        $count->execute($params);
+        $total = (int)$count->fetchColumn();
+
+        // Tri serveur fixe ; id en second critère pour une pagination stable.
+        $select = $pdo->prepare(
+            "SELECT r.id, v.last_name, v.first_name, s.label AS school, l.label AS entry_level, r.created_at
+             FROM registrations r
+             JOIN visitors v ON v.id = r.visitor_id
+             JOIN schools s ON s.id = r.school_id
+             JOIN entry_levels l ON l.id = r.entry_level_id
+             WHERE $where
+             ORDER BY r.created_at DESC, r.id DESC
+             LIMIT :limit OFFSET :offset"
+        );
+        foreach ($params as $name => $value) {
+            $select->bindValue($name, $value, PDO::PARAM_INT);
+        }
+        $select->bindValue(':limit', $filters->perPage, PDO::PARAM_INT);
+        $select->bindValue(':offset', ($filters->page - 1) * $filters->perPage, PDO::PARAM_INT);
+        $select->execute();
+
+        $paris = new \DateTimeZone('Europe/Paris');
+        $items = array_map(static fn(array $row): array => [
+            'id' => (int)$row['id'],
+            'last_name' => $row['last_name'],
+            'first_name' => $row['first_name'],
+            'school' => $row['school'],
+            'entry_level' => $row['entry_level'],
+            'registered_at' => (new \DateTimeImmutable($row['created_at']))->setTimezone($paris)->format(DATE_ATOM),
+        ], $select->fetchAll(PDO::FETCH_ASSOC));
+
+        return ['items' => $items, 'pagination' => [
+            'page' => $filters->page,
+            'per_page' => $filters->perPage,
+            'total' => $total,
+            'pages' => max(1, (int)ceil($total / $filters->perPage)),
+        ]];
+    }
+
     /** @param array<string,mixed> $v */
     private function visitorId(PDO $pdo, array $v): int
     {
