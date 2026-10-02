@@ -1,9 +1,19 @@
 import "./style.css";
 import { api, showMessage } from "./api.js";
+
 const message = document.querySelector("#admin-message");
 const login = document.querySelector("#login-section");
 const dashboard = document.querySelector("#dashboard-section");
 const form = document.querySelector("#login-form");
+const body = document.querySelector("#visits-body");
+const emptyState = body.innerHTML; // état « Aucune visite chargée » du HTML
+const searchInput = document.querySelector("#filter-search");
+const schoolSelect = document.querySelector("#filter-school");
+const dialog = document.querySelector("#visit-dialog");
+let visits = [];
+
+/* ---------- Session et statistiques ---------- */
+
 function display(user) {
   login.hidden = Boolean(user);
   dashboard.hidden = !user;
@@ -12,15 +22,14 @@ function display(user) {
     : "";
   if (user) loadStats();
 }
+
 async function loadStats() {
   try {
     const stats = await api("/admin/stats");
     const schools = new Set(stats.groups.map((group) => group.school_id));
-    document.querySelector("#stat-total").textContent = stats.total;
-    document.querySelector("#stat-groups").textContent =
-      `${stats.groups.length} combinaison(s) école / niveau`;
+    document.querySelector("#stat-visits").textContent = stats.total;
     document.querySelector("#stat-schools").textContent = schools.size;
-    document.querySelector("#stat-generated").textContent = new Date(
+    document.querySelector("#stat-sync").textContent = new Date(
       stats.generated_at,
     ).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
   } catch (error) {
@@ -28,12 +37,14 @@ async function loadStats() {
     showMessage(message, error.message);
   }
 }
+
 try {
   const session = await api("/auth/session");
   display(session.user);
 } catch (error) {
   showMessage(message, error.message);
 }
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const button = form.querySelector("button");
@@ -52,24 +63,21 @@ form.addEventListener("submit", async (event) => {
     button.disabled = false;
   }
 });
+
 document.querySelector("#logout").addEventListener("click", async () => {
   try {
     await api("/auth/logout", { method: "POST" });
     display(null);
-    document.querySelector("#list-result").textContent = "";
+    resetList();
   } catch (error) {
     showMessage(message, error.message);
   }
 });
-const body = document.querySelector("#visits-body");
-const emptyState = body.innerHTML; // l'état « Aucune visite chargée » du HTML
-const searchInput = document.querySelector("#filter-search");
-const schoolSelect = document.querySelector("#filter-school");
-const dialog = document.querySelector("#visit-dialog");
-let visits = [];
 
-// --- Adapter ici si les champs de l'API sont différents ---
-const pick = (...values) => values.find((v) => v !== undefined && v !== null && v !== "");
+/* ---------- Liste des visites ---------- */
+
+const pick = (...values) =>
+  values.find((v) => v !== undefined && v !== null && v !== "");
 const label = (r, key) =>
   pick(
     r[`${key}_label`],
@@ -93,10 +101,12 @@ function normalize(r) {
     remark: r.remark ?? "",
   };
 }
-// -----------------------------------------------------------
+// ---------------------------------------------------------
 
 const formatDate = (value) =>
-  /^\d{4}-\d{2}-\d{2}/.test(value) ? value.slice(0, 10).split("-").reverse().join("/") : value;
+  /^\d{4}-\d{2}-\d{2}/.test(value)
+    ? value.slice(0, 10).split("-").reverse().join("/")
+    : value;
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -117,7 +127,9 @@ function visitRow(v) {
   const tr = el("tr", "hover");
 
   const who = el("td");
-  who.append(el("div", "font-medium", `${v.firstName} ${v.lastName}`.trim() || "—"));
+  who.append(
+    el("div", "font-medium", `${v.firstName} ${v.lastName}`.trim() || "—"),
+  );
   who.append(el("div", "text-sm text-base-content/70", v.email));
 
   const school = el("td", "", v.school);
@@ -128,7 +140,10 @@ function visitRow(v) {
   const actions = el("td", "text-right");
   const btn = el("button", "btn btn-ghost btn-sm text-secondary", "Voir");
   btn.type = "button";
-  btn.setAttribute("aria-label", `Voir la fiche de ${v.firstName} ${v.lastName}`);
+  btn.setAttribute(
+    "aria-label",
+    `Voir la fiche de ${v.firstName} ${v.lastName}`,
+  );
   btn.addEventListener("click", () => openDetails(v));
   actions.append(btn);
 
@@ -142,10 +157,14 @@ function render() {
   const rows = visits.filter(
     (v) =>
       (!school || v.school === school) &&
-      (!q || `${v.firstName} ${v.lastName} ${v.email}`.toLowerCase().includes(q)),
+      (!q ||
+        `${v.firstName} ${v.lastName} ${v.email}`.toLowerCase().includes(q)),
   );
+  const empty = visits.length
+    ? "Aucune visite ne correspond à votre recherche."
+    : "Aucune visite enregistrée pour le moment.";
   body.replaceChildren(
-    ...(rows.length ? rows.map(visitRow) : [messageRow("Aucune visite ne correspond à votre recherche.")]),
+    ...(rows.length ? rows.map(visitRow) : [messageRow(empty)]),
   );
 }
 
@@ -172,17 +191,6 @@ function openDetails(v) {
   dialog.showModal();
 }
 
-function updateStats() {
-  document.querySelector("#stat-visits").textContent = visits.length;
-  document.querySelector("#stat-schools").textContent = new Set(
-    visits.map((v) => v.school).filter((s) => s !== "—"),
-  ).size;
-  document.querySelector("#stat-sync").textContent = new Date().toLocaleTimeString(
-    "fr-FR",
-    { hour: "2-digit", minute: "2-digit" },
-  );
-}
-
 function fillSchoolFilter() {
   const schools = [...new Set(visits.map((v) => v.school))].sort((a, b) =>
     a.localeCompare(b, "fr"),
@@ -203,10 +211,11 @@ function resetList() {
 async function loadList() {
   try {
     const data = await api("/admin/registrations");
-    const list = Array.isArray(data) ? data : (data.registrations ?? data.items ?? []);
+    const list = Array.isArray(data)
+      ? data
+      : (data.registrations ?? data.items ?? []);
     visits = list.map(normalize);
     fillSchoolFilter();
-    updateStats();
     render();
   } catch (error) {
     if (error.status === 401) display(null);
@@ -214,7 +223,7 @@ async function loadList() {
   }
 }
 
-// Délégation : le bouton « Charger la liste » est recréé quand on se déconnecte
+// Délégation : le bouton « Charger la liste » est recréé après une déconnexion
 body.addEventListener("click", (event) => {
   if (event.target.closest("#load-list")) loadList();
 });
