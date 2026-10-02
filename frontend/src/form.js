@@ -117,7 +117,6 @@ form.addEventListener("submit", async (event) => {
   for (const name of CHECKED_FIELDS) validateField(form.elements.namedItem(name));
   if (!form.reportValidity()) return;
 
-  if (!form.reportValidity()) return;
   const payload = Object.fromEntries(new FormData(form));
   payload.birth_date = parseBirthDate(payload.birth_date).iso; // JJ/MM/AAAA -> AAAA-MM-JJ
   payload.email = payload.email.trim().toLowerCase();
