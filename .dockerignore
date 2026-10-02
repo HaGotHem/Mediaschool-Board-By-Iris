@@ -1,0 +1,10 @@
+.git
+.env
+.env.*
+**/node_modules
+**/vendor
+frontend/dist
+livrables
+backups
+release
+*.dump

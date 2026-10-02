@@ -1,0 +1,11 @@
+# Ajout facultatif : édition du PHP sans reconstruire l'image.
+# Le volume vendor n'est pas masqué : seuls les répertoires source sont montés.
+services:
+  api:
+    volumes:
+      - ./backend/src:/var/www/app/src:ro
+      - ./backend/public:/var/www/app/public:ro
+      - ./backend/database:/var/www/app/database:ro
+      - ./backend/tests:/var/www/app/tests:ro
+      - ./backend/examples:/var/www/app/examples:ro
+      - ./backend/bin:/var/www/app/bin:ro

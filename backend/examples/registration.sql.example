@@ -1,0 +1,13 @@
+-- EXEMPLE INCOMPLET : ne pas renommer ce fichier directement en migration.
+-- D'abord produire MCD, cardinalités, dictionnaire, MLD et règles d'unicité.
+CREATE TABLE registrations (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    event_id integer NOT NULL REFERENCES events(id),
+    last_name varchar(100) NOT NULL,
+    first_name varchar(100) NOT NULL,
+    school_id integer NOT NULL REFERENCES schools(id),
+    registered_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+    -- À compléter : birth_date, phone, email, current_class_id nullable,
+    -- entry_level_id, specialty_id nullable, remark et contraintes.
+);
+-- À décider : index unique d'identité normalisée par événement et index de recherche.

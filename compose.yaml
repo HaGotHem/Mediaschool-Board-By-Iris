@@ -1,0 +1,70 @@
+name: mediaschool-board
+services:
+  db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: ${DB_NAME:-board}
+      POSTGRES_USER: ${DB_USER:-board}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Renseigner DB_PASSWORD dans .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  api:
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      APP_SECRET: ${APP_SECRET:?Renseigner APP_SECRET dans .env}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-board}
+      DB_USER: ${DB_USER:-board}
+      DB_PASSWORD: ${DB_PASSWORD:?Renseigner DB_PASSWORD dans .env}
+      EVENT_ID: ${EVENT_ID:-1}
+      REGISTRATIONS_OPEN: ${REGISTRATIONS_OPEN:-false}
+      SESSION_PATH: /var/lib/php/sessions
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_ENCRYPTION: ${SMTP_ENCRYPTION:-tls}
+      SUMMARY_RECIPIENT_ALLOWLIST: ${SUMMARY_RECIPIENT_ALLOWLIST:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - sessions:/var/lib/php/sessions
+    healthcheck:
+      test: [CMD, php, bin/health.php]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+  web:
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+    ports:
+      - '127.0.0.1:${APP_PORT:-8080}:80'
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD-SHELL, 'wget -q -O /dev/null http://127.0.0.1/api/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    restart: unless-stopped
+volumes:
+  postgres_data:
+  sessions:

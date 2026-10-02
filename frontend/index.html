@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="fr" data-theme="light">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Mediaschool Board by Iris Nice — Salon</title></head>
+<body class="bg-base-200 text-base-content">
+<header class="bg-base-100 border-b border-base-300"><div class="max-w-3xl mx-auto px-4 py-5"><p class="text-sm font-semibold text-primary">IRIS NICE · MEDIASCHOOL</p><h1 class="text-2xl font-bold mt-1">Mediaschool Board by Iris Nice</h1></div></header>
+<main class="max-w-3xl mx-auto px-4 py-6">
+<div class="alert alert-info mb-5"><span>Socle pédagogique : l’enregistrement reste à développer. Utilisez uniquement des données fictives pendant les tests.</span></div>
+<section class="card bg-base-100 shadow-sm"><div class="card-body gap-5">
+<div><h2 class="card-title">Enregistrez votre visite</h2><p id="event-label" class="text-sm mt-2">Salon Studyrama — 3 octobre 2026</p><p class="mt-2">Les champs marqués * sont obligatoires. Cette fiche confirme votre visite et votre intérêt pour une formation.</p></div>
+<div id="message" role="alert" tabindex="-1" hidden></div>
+<form id="registration-form" class="space-y-6">
+<fieldset><legend class="font-bold text-lg mb-4">1. Vos coordonnées</legend><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div><label for="last-name">Nom *</label><input class="input input-bordered mt-1" id="last-name" name="last_name" autocomplete="family-name" required maxlength="100"></div>
+<div><label for="first-name">Prénom *</label><input class="input input-bordered mt-1" id="first-name" name="first_name" autocomplete="given-name" required maxlength="100"></div>
+<div><label for="birth-date">Date de naissance *</label><input class="input input-bordered mt-1" type="date" id="birth-date" name="birth_date" autocomplete="bday" required></div>
+<div><label for="phone">Téléphone *</label><input class="input input-bordered mt-1" type="tel" id="phone" name="phone" autocomplete="tel" maxlength="30" required></div>
+<div class="sm:col-span-2"><label for="email">Adresse e-mail *</label><input class="input input-bordered mt-1" type="email" id="email" name="email" autocomplete="email" maxlength="254" required></div>
+</div></fieldset>
+<fieldset><legend class="font-bold text-lg mb-4">2. Votre projet de formation</legend><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div><label for="current-class">Classe actuelle</label><select class="select select-bordered mt-1" id="current-class" name="current_class_id"><option value="">Non renseignée</option></select></div>
+<div><label for="school">École visée *</label><select class="select select-bordered mt-1" id="school" name="school_id" required><option value="">Choisir une école</option></select></div>
+<div><label for="entry-level">Niveau d’inscription *</label><select class="select select-bordered mt-1" id="entry-level" name="entry_level_id" required><option value="">Choisir un niveau</option></select></div>
+<div><label for="specialty">Spécialité envisagée</label><select class="select select-bordered mt-1" id="specialty" name="specialty_id"><option value="">Je ne sais pas encore</option></select></div>
+</div></fieldset>
+<div><label for="remark">Remarque</label><textarea class="textarea textarea-bordered mt-1" id="remark" name="remark" rows="3" maxlength="1000" aria-describedby="remark-help"></textarea><p id="remark-help" class="text-sm mt-1">Facultatif. Indiquez un souhait particulier ; évitez toute information sensible ou les coordonnées d’un tiers.</p></div>
+<div class="rounded-box bg-base-200 p-4 text-sm"><p class="font-semibold">Information sur vos données — à compléter avant ouverture</p><p>Le pôle pilotage prépare la notice : responsable du traitement, finalités, base légale, destinataires, durée et contact pour exercer vos droits. Ce texte provisoire doit être remplacé.</p></div>
+<button id="submit-button" class="btn btn-primary w-full min-h-12" type="submit" disabled>Enregistrer ma visite</button>
+</form></div></section>
+<footer class="text-sm py-6"><a class="link" href="/admin.html">Espace équipe du salon</a></footer>
+</main><script type="module" src="/src/form.js"></script></body></html>

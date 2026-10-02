@@ -1,0 +1,47 @@
+@base = http://localhost:8080/api
+@csrf = A_REMPLACER_AVEC_LE_TOKEN_DE_LA_SESSION
+
+### Santé technique
+GET {{base}}/health
+
+### Les quatre listes exactes
+GET {{base}}/references
+
+### Récupérer le token et conserver le cookie dans le client HTTP
+GET {{base}}/auth/session
+
+### Connexion : utiliser le compte créé par la CLI, jamais committer son vrai secret
+POST {{base}}/auth/login
+Content-Type: application/json
+X-CSRF-Token: {{csrf}}
+
+{"username":"equipe","password":"A_SAISIR_LOCALEMENT"}
+
+### Fiche fictive : 503 fermé / 501 avant développement / 201 après implémentation
+POST {{base}}/registrations
+Content-Type: application/json
+
+{"last_name":"Démonstration","first_name":"Camille","birth_date":"2008-04-12","phone":"+33 6 00 00 00 00","email":"camille.demo@example.test","current_class_id":3,"school_id":3,"entry_level_id":7,"specialty_id":5,"remark":"Données fictives"}
+
+### Liste : 401 anonyme, 501 connecté avant développement
+GET {{base}}/admin/registrations?page=1&per_page=20&school_id=3
+
+### Synthèse
+GET {{base}}/admin/summary
+
+### CSV
+GET {{base}}/admin/exports/csv
+
+### PDF
+GET {{base}}/admin/exports/pdf
+
+### Envoi : remplacer le token après login ; n'utiliser que le relais de test autorisé
+POST {{base}}/admin/summary/email
+Content-Type: application/json
+X-CSRF-Token: {{csrf}}
+
+{"recipient":"test-autorise@example.test","format":"pdf","filters":{"school_id":null,"entry_level_id":null}}
+
+### Déconnexion
+POST {{base}}/auth/logout
+X-CSRF-Token: {{csrf}}

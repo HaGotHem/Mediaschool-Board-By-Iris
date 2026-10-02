@@ -1,0 +1,20 @@
+{
+  "name": "iris-nice/mediaschool-board-starter",
+  "description": "Socle pédagogique BTS SIO : Slim 4, Medoo et PostgreSQL",
+  "type": "project",
+  "require": {
+    "php": "^8.3",
+    "ext-pdo": "*",
+    "ext-pdo_pgsql": "*",
+    "ext-mbstring": "*",
+    "ext-dom": "*",
+    "slim/slim": "^4.15",
+    "slim/psr7": "^1.8",
+    "catfan/medoo": "^2.2",
+    "dompdf/dompdf": "^3.1",
+    "phpmailer/phpmailer": "^6.10"
+  },
+  "autoload": {"psr-4": {"Board\\": "src/"}},
+  "scripts": {"test": "php tests/unit.php", "smoke": "php tests/smoke.php"},
+  "config": {"sort-packages": true, "platform": {"php": "8.4.0"}}
+}

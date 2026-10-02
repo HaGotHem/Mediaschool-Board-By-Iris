@@ -1,0 +1,85 @@
+name: Socle et intégration
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  starter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        checkout: [standard, crlf]
+    name: Starter (${{ matrix.checkout }})
+    env:
+      TEST_ADMIN_PASSWORD: CI-fictive-browser-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configuration fictive
+        run: |
+          mkdir -p reports
+          cp .env.example .env
+          git rev-parse HEAD > reports/commit.txt
+      - name: Reproduction du shebang CRLF sous Linux
+        if: matrix.checkout == 'crlf'
+        shell: bash
+        run: |
+          printf '#!/bin/sh\r\nexit 0\r\n' > /tmp/board-crlf-example.sh
+          chmod +x /tmp/board-crlf-example.sh
+          if /tmp/board-crlf-example.sh > reports/crlf-reproduction.txt 2>&1; then
+            echo 'Le cas CRLF aurait dû échouer sous Linux' >&2
+            exit 1
+          fi
+          echo 'Défaut CRLF reproduit ; vérification du correctif Docker ensuite.' >> reports/crlf-reproduction.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('docker/api/entrypoint.sh')
+          p.write_bytes(p.read_bytes().replace(b'\r\n', b'\n').replace(b'\n', b'\r\n'))
+          PY
+      - name: Build et santé des trois services
+        run: docker compose up -d --build --wait --wait-timeout 180 2>&1 | tee reports/demarrage.txt
+      - name: Syntaxe PHP
+        run: docker compose exec -T api sh -c 'find src public bin examples tests -name "*.php" -print0 | xargs -0 -n1 php -l' | tee reports/syntaxe-php.txt
+      - name: Tests unitaires des exemples
+        run: docker compose exec -T api composer test 2>&1 | tee reports/tests-unitaires.txt
+      - name: Tests Slim et PostgreSQL
+        run: docker compose exec -T api composer smoke 2>&1 | tee reports/tests-integration.txt
+      - name: Proxy HTTP et ouverture désactivée
+        run: |
+          curl --fail http://127.0.0.1:8080/api/health | tee reports/health.json
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/admin/registrations)" = 401
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:8080/api/registrations)" = 503
+          docker compose exec -T api php bin/migrate.php
+          docker compose exec -T api sh -c '! grep -q "$(printf "\r")" /usr/local/bin/board-entrypoint'
+          echo 'HTTP 200 / 401 / 503 et entrypoint LF vérifiés' > reports/proxy.txt
+      - name: Exports fictifs
+        run: |
+          mkdir -p reports/exports
+          docker compose exec -T api php examples/export-demo.php /tmp
+          docker compose cp api:/tmp/recap-demo.csv reports/exports/recap-demo.csv
+          docker compose cp api:/tmp/recap-demo.pdf reports/exports/recap-demo.pdf
+      - name: Recette navigateur du starter
+        run: |
+          npm install --prefix /tmp/board-ui-check playwright --no-audit --no-fund
+          docker compose exec -T -e TEST_ADMIN_PASSWORD api php -r 'require "vendor/autoload.php"; Board\Infrastructure\Database::connect()->insert("admins", ["username" => "ci-browser", "password_hash" => password_hash(getenv("TEST_ADMIN_PASSWORD"), PASSWORD_DEFAULT)]);'
+          BOARD_PLAYWRIGHT_MODULE=/tmp/board-ui-check/node_modules/playwright node scripts/ci-browser.cjs
+      - name: Extraire les diagnostics
+        if: always()
+        run: |
+          docker compose ps -a > reports/compose-ps.txt
+          docker compose logs --no-color --tail=150 > reports/conteneurs.txt 2>&1
+          docker inspect mediaschool-board-api-1 --format '{{json .State}}' > reports/etat-api.json 2>&1 || true
+      - name: Publier les résultats et captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-starter-${{ matrix.checkout }}
+          path: reports/
+          retention-days: 7
+      - name: Arrêt de la pile CI jetable
+        if: always()
+        run: docker compose down -v
