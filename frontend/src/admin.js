@@ -29,8 +29,8 @@ function display(user) {
     ? `Connecté : ${user.username}`
     : "";
   // Les exports ne dépendent pas de la liste chargée : actifs dès la connexion
-  for (const id of ["#export-csv", "#export-pdf"]) {
-    document.querySelector(id).disabled = !user;
+  for (const id of ["#export-csv", "#export-pdf", "#send-recap"]) {
+  document.querySelector(id).disabled = !user;
   }
   if (user) loadStats();
 }
@@ -440,3 +440,63 @@ document
   .addEventListener("click", () =>
     downloadFile("#export-pdf", "pdf", "recap-salon.pdf"),
   );
+/* ---------- Envoi du récapitulatif par e-mail ---------- */
+
+const sendDialog = document.querySelector("#send-dialog");
+const sendForm = document.querySelector("#send-form");
+const sendError = document.querySelector("#send-error");
+const sendSubmit = document.querySelector("#send-submit");
+const sendInput = document.querySelector("#send-recipient");
+
+function setSendError(text) {
+  sendError.textContent = text;
+  sendError.hidden = !text;
+  sendInput.classList.toggle("input-error", Boolean(text));
+}
+
+document.querySelector("#send-recap").addEventListener("click", () => {
+  setSendError("");
+  sendDialog.showModal();
+  sendInput.focus();
+});
+
+document
+  .querySelector("#send-cancel")
+  .addEventListener("click", () => sendDialog.close());
+
+sendDialog.addEventListener("close", () => {
+  sendForm.reset();
+  setSendError("");
+});
+
+sendForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const recipient = sendInput.value.trim();
+  const format = new FormData(sendForm).get("format");
+
+  if (!recipient || !sendInput.checkValidity()) {
+    setSendError("Saisissez une adresse e-mail valide.");
+    sendInput.focus();
+    return;
+  }
+
+  sendSubmit.disabled = true;
+  sendSubmit.textContent = "Envoi…";
+  try {
+    await api("/admin/summary/email", {
+      method: "POST",
+      body: { recipient, format },
+    });
+    sendDialog.close();
+    showMessage(message, `Récapitulatif envoyé à ${recipient}.`, true);
+  } catch (error) {
+    if (error.status === 401) {
+      sendDialog.close();
+      display(null);
+    }
+    setSendError(error.fields?.recipient ?? error.message);
+  } finally {
+    sendSubmit.disabled = false;
+    sendSubmit.textContent = "Envoyer";
+  }
+});
