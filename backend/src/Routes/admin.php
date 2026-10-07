@@ -2,7 +2,7 @@
 declare(strict_types=1);
 use Board\Export\SummaryExport;
 use Board\Http\Json;
-use Board\Registration\{Filters, Repository};
+use Board\Registration\{Filters, Repository, Validator};
 use Board\Security\{AuthMiddleware, CsrfMiddleware};
 use Psr\Http\Message\{ServerRequestInterface as Request, ResponseInterface as Response};
 use Slim\App;
@@ -41,7 +41,54 @@ return static function (App $app, Closure $db): void {
         $group->get('/summary', $summary);
         $group->get('/stats', $summary);
 
-        $group->get('/registrations/{id:[0-9]+}', $todo);      // API-03 : détail
+        // API-03 : détail. Une fiche d'un autre salon répond 404 (on ne confirme pas son existence).
+        $group->get('/registrations/{id:[0-9]+}', function (Request $request, Response $response, array $args) use ($db): Response {
+            if (strlen($args['id']) > 18) { // évite un dépassement d'entier
+                return Json::error('NOT_FOUND', 'Fiche introuvable.', 404);
+            }
+            $row = (new Repository($db(), (int)(getenv('EVENT_ID') ?: 1)))->find((int)$args['id']);
+            return $row === null
+                ? Json::error('NOT_FOUND', 'Fiche introuvable.', 404)
+                : Json::send(['data' => $row]);
+        });
+
+        // Modification d'une fiche : mêmes règles que le formulaire public (Validator), CSRF exigé par le groupe.
+        $group->patch('/registrations/{id:[0-9]+}', function (Request $request, Response $response, array $args) use ($db): Response {
+            if (strlen($args['id']) > 18) {
+                return Json::error('NOT_FOUND', 'Fiche introuvable.', 404);
+            }
+            if (!str_starts_with(strtolower($request->getHeaderLine('Content-Type')), 'application/json')) {
+                return Json::error('UNSUPPORTED_MEDIA_TYPE', 'Le format JSON est attendu.', 415);
+            }
+            $body = $request->getParsedBody();
+            if (!is_array($body) || ($body !== [] && array_is_list($body))) {
+                return Json::error('INVALID_JSON', 'Corps de requête invalide.', 400);
+            }
+
+            $repo = new Repository($db(), (int)(getenv('EVENT_ID') ?: 1));
+            $today = new DateTimeImmutable('today', new DateTimeZone('Europe/Paris'));
+            ['values' => $values, 'errors' => $errors] = Validator::validate($body, $repo->referenceIds(), $today);
+            if ($errors !== []) {
+                return Json::error('VALIDATION_FAILED', 'Corrigez les champs indiqués.', 422, $errors);
+            }
+
+            try {
+                $updated = $repo->update((int)$args['id'], $values);
+            } catch (PDOException $e) {
+                if (($e->errorInfo[0] ?? '') === '23505') { // e-mail déjà utilisé par un autre visiteur
+                    return Json::error('VALIDATION_FAILED', 'Corrigez les champs indiqués.', 422,
+                        ['email' => 'Adresse déjà utilisée par un autre visiteur.']);
+                }
+                if (($e->errorInfo[0] ?? '') === '23503') {
+                    return Json::error('VALIDATION_FAILED', 'Corrigez les champs indiqués.', 422);
+                }
+                throw $e;
+            }
+            if (!$updated) {
+                return Json::error('NOT_FOUND', 'Fiche introuvable.', 404);
+            }
+            return Json::send(['data' => $repo->find((int)$args['id'])]);
+        });
 
         // Export nominatif : toutes les fiches, du premier au dernier inscrit, sans l'id.
         $group->get('/exports/registrations/csv', function (Request $request, Response $response) use ($db): Response {

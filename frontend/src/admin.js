@@ -1,5 +1,14 @@
 import "./style.css";
 import { api, showMessage } from "./api.js";
+import {
+  CHECKED_FIELDS,
+  attachErrorSlots,
+  fillReferenceSelects,
+  liveValidate,
+  showFieldError,
+  toPayload,
+  validateField,
+} from "./validation.js";
 const message = document.querySelector("#admin-message");
 const login = document.querySelector("#login-section");
 const dashboard = document.querySelector("#dashboard-section");
@@ -89,6 +98,7 @@ const label = (r, key) =>
 
 function normalize(r) {
   return {
+    id: r.id,
     reference: pick(r.reference, r.id, "—"),
     lastName: r.last_name ?? "",
     firstName: r.first_name ?? "",
@@ -145,7 +155,7 @@ function visitRow(v) {
     "aria-label",
     `Voir la fiche de ${v.firstName} ${v.lastName}`,
   );
-  btn.addEventListener("click", () => openDetails(v));
+  btn.addEventListener("click", () => showVisit(v, btn));
   actions.append(btn);
 
   tr.append(who, school, level, actions);
@@ -188,8 +198,116 @@ function openDetails(v) {
     dl.append(el("dt", "text-base-content/70", name));
     dl.append(el("dd", "col-span-2 font-medium break-words", value || "—"));
   }
-  dialog.showModal();
+  setEditMode(false);
+  if (!dialog.open) dialog.showModal();
 }
+
+// La liste ne contient ni e-mail, ni téléphone, ni naissance : on charge la fiche complète
+async function showVisit(v, button) {
+  button.disabled = true;
+  try {
+    currentVisit = await api(`/admin/registrations/${v.id}`);
+    openDetails(normalize(currentVisit));
+  } catch (error) {
+    if (error.status === 401) display(null);
+    showMessage(message, error.message);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+// --- Modification d'une fiche ---
+const visitView = document.querySelector("#visit-view");
+const visitForm = document.querySelector("#visit-form");
+const visitMessage = document.querySelector("#visit-message");
+const saveButton = document.querySelector("#visit-save");
+let currentVisit = null; // fiche brute de l'API (avec les id des listes)
+let referencesLoaded = false;
+
+attachErrorSlots(visitForm);
+liveValidate(visitForm);
+
+function setEditMode(editing) {
+  visitView.hidden = editing;
+  visitForm.hidden = !editing;
+  visitMessage.hidden = true;
+}
+
+async function startEdit() {
+  try {
+    if (!referencesLoaded) {
+      fillReferenceSelects(visitForm, await api("/references"));
+      referencesLoaded = true;
+    }
+  } catch (error) {
+    showMessage(visitMessage, `Modification indisponible : ${error.message}`);
+    return;
+  }
+  const r = currentVisit;
+  const values = {
+    last_name: r.last_name,
+    first_name: r.first_name,
+    birth_date: formatDate(r.birth_date ?? ""), // AAAA-MM-JJ -> JJ/MM/AAAA
+    phone: r.phone,
+    email: r.email,
+    current_class_id: r.current_class_id,
+    school_id: r.school_id,
+    entry_level_id: r.entry_level_id,
+    specialty_id: r.specialty_id,
+    remark: r.remark,
+  };
+  for (const [name, value] of Object.entries(values))
+    visitForm.elements.namedItem(name).value = value == null ? "" : String(value);
+  for (const name of CHECKED_FIELDS)
+    showFieldError(visitForm.elements.namedItem(name), "");
+  setEditMode(true);
+  visitForm.elements.namedItem("last_name").focus();
+}
+
+document.querySelector("#infoedit").addEventListener("click", startEdit);
+document
+  .querySelector("#visit-cancel")
+  .addEventListener("click", () => setEditMode(false));
+// Toujours rouvrir une fiche en mode lecture
+dialog.addEventListener("close", () => setEditMode(false));
+
+visitForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  for (const name of CHECKED_FIELDS)
+    validateField(visitForm.elements.namedItem(name));
+  if (!visitForm.reportValidity()) return;
+
+  saveButton.disabled = true;
+  try {
+    const updated = await api(`/admin/registrations/${currentVisit.id}`, {
+      method: "PATCH",
+      body: toPayload(visitForm),
+    });
+    currentVisit = updated;
+    // Met à jour la ligne du tableau sans recharger toute la liste
+    visits = visits.map((v) => (v.id === updated.id ? normalize(updated) : v));
+    fillSchoolFilter();
+    render();
+    openDetails(normalize(updated));
+    showMessage(visitMessage, "Fiche mise à jour.", true);
+  } catch (error) {
+    if (error.status === 401) {
+      dialog.close();
+      display(null);
+      showMessage(message, error.message);
+      return;
+    }
+    // Erreurs par champ renvoyées par le serveur (ex. e-mail déjà utilisé)
+    for (const [name, text] of Object.entries(error.fields ?? {})) {
+      const input = visitForm.elements.namedItem(name);
+      if (input && document.getElementById(`${input.id}-error`))
+        showFieldError(input, text);
+    }
+    showMessage(visitMessage, error.message);
+  } finally {
+    saveButton.disabled = false;
+  }
+});
 
 function updateStats() {
   document.querySelector("#stat-visits").textContent = visits.length;
