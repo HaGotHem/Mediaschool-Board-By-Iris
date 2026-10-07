@@ -112,6 +112,106 @@ final class Repository
     }
 
     /**
+     * Fiche complète d'une inscription du salon actif ; null si absente ou d'un autre salon.
+     *
+     * @return array<string,mixed>|null
+     */
+    public function find(int $id): ?array
+    {
+        $select = $this->db->pdo->prepare(
+            "SELECT r.id, v.last_name, v.first_name, v.birth_date, v.phone, v.email,
+                    r.current_class_id, cc.label AS current_class, r.school_id, s.label AS school,
+                    r.entry_level_id, l.label AS entry_level, r.specialty_id, sp.label AS specialty,
+                    r.remark, r.created_at
+             FROM registrations r
+             JOIN visitors v ON v.id = r.visitor_id
+             JOIN schools s ON s.id = r.school_id
+             JOIN entry_levels l ON l.id = r.entry_level_id
+             LEFT JOIN current_classes cc ON cc.id = r.current_class_id
+             LEFT JOIN specialties sp ON sp.id = r.specialty_id
+             WHERE r.id = :id AND r.event_id = :event_id"
+        );
+        $select->bindValue(':id', $id, PDO::PARAM_INT);
+        $select->bindValue(':event_id', $this->eventId, PDO::PARAM_INT);
+        $select->execute();
+        $row = $select->fetch(PDO::FETCH_ASSOC);
+        if ($row === false) {
+            return null;
+        }
+
+        return [
+            'id' => (int)$row['id'],
+            'last_name' => $row['last_name'],
+            'first_name' => $row['first_name'],
+            'birth_date' => $row['birth_date'],
+            'phone' => $row['phone'],
+            'email' => $row['email'],
+            // Les id servent à pré-remplir les listes du formulaire de modification
+            'current_class_id' => $row['current_class_id'] === null ? null : (int)$row['current_class_id'],
+            'current_class' => $row['current_class'],
+            'school_id' => (int)$row['school_id'],
+            'school' => $row['school'],
+            'entry_level_id' => (int)$row['entry_level_id'],
+            'entry_level' => $row['entry_level'],
+            'specialty_id' => $row['specialty_id'] === null ? null : (int)$row['specialty_id'],
+            'specialty' => $row['specialty'],
+            'remark' => $row['remark'],
+            'registered_at' => (new \DateTimeImmutable($row['created_at']))
+                ->setTimezone(new \DateTimeZone('Europe/Paris'))->format(DATE_ATOM),
+        ];
+    }
+
+    /**
+     * Modifie une inscription du salon actif et son visiteur. Créneau, conseiller et salon ne bougent pas.
+     *
+     * @param array<string,mixed> $v valeurs validées par Validator
+     * @return bool false si la fiche est absente ou d'un autre salon
+     * @throws PDOException 23505 si l'e-mail appartient déjà à un autre visiteur
+     */
+    public function update(int $id, array $v): bool
+    {
+        $pdo = $this->db->pdo;
+        $pdo->beginTransaction();
+        try {
+            $registration = $pdo->prepare(
+                'UPDATE registrations
+                 SET current_class_id = :current_class_id, school_id = :school_id,
+                     entry_level_id = :entry_level_id, specialty_id = :specialty_id, remark = :remark
+                 WHERE id = :id AND event_id = :event_id
+                 RETURNING visitor_id'
+            );
+            $registration->execute([
+                ':current_class_id' => $v['current_class_id'], ':school_id' => $v['school_id'],
+                ':entry_level_id' => $v['entry_level_id'], ':specialty_id' => $v['specialty_id'],
+                ':remark' => $v['remark'], ':id' => $id, ':event_id' => $this->eventId,
+            ]);
+            $visitorId = $registration->fetchColumn();
+            if ($visitorId === false) {
+                $pdo->rollBack();
+                return false;
+            }
+
+            $pdo->prepare(
+                'UPDATE visitors
+                 SET last_name = :last_name, first_name = :first_name, birth_date = :birth_date,
+                     phone = :phone, email = :email
+                 WHERE id = :id'
+            )->execute([
+                ':last_name' => $v['last_name'], ':first_name' => $v['first_name'],
+                ':birth_date' => $v['birth_date'], ':phone' => $v['phone'], ':email' => $v['email'],
+                ':id' => (int)$visitorId,
+            ]);
+            $pdo->commit();
+            return true;
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    /**
      * Synthèse du salon actif par école et niveau. Seule source pour le JSON, les exports et le mail :
      * le total est la somme des groupes du même résultat.
      *
