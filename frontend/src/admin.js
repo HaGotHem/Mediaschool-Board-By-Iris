@@ -13,6 +13,14 @@ const message = document.querySelector("#admin-message");
 const login = document.querySelector("#login-section");
 const dashboard = document.querySelector("#dashboard-section");
 const form = document.querySelector("#login-form");
+const body = document.querySelector("#visits-body");
+const emptyState = body.innerHTML; // état « Aucune visite chargée » du HTML
+const searchInput = document.querySelector("#filter-search");
+const schoolSelect = document.querySelector("#filter-school");
+const dialog = document.querySelector("#visit-dialog");
+let visits = [];
+
+/* ---------- Session et statistiques ---------- */
 
 function display(user) {
   login.hidden = Boolean(user);
@@ -78,14 +86,8 @@ document.querySelector("#logout").addEventListener("click", async () => {
   }
 });
 
-const body = document.querySelector("#visits-body");
-const emptyState = body.innerHTML; // l'état « Aucune visite chargée » du HTML
-const searchInput = document.querySelector("#filter-search");
-const schoolSelect = document.querySelector("#filter-school");
-const dialog = document.querySelector("#visit-dialog");
-let visits = [];
+/* ---------- Liste des visites ---------- */
 
-// --- Adapter ici si les champs de l'API sont différents ---
 const pick = (...values) =>
   values.find((v) => v !== undefined && v !== null && v !== "");
 const label = (r, key) =>
@@ -112,7 +114,7 @@ function normalize(r) {
     remark: r.remark ?? "",
   };
 }
-// -----------------------------------------------------------
+// ---------------------------------------------------------
 
 const formatDate = (value) =>
   /^\d{4}-\d{2}-\d{2}/.test(value)
@@ -171,10 +173,11 @@ function render() {
       (!q ||
         `${v.firstName} ${v.lastName} ${v.email}`.toLowerCase().includes(q)),
   );
+  const empty = visits.length
+    ? "Aucune visite ne correspond à votre recherche."
+    : "Aucune visite enregistrée pour le moment.";
   body.replaceChildren(
-    ...(rows.length
-      ? rows.map(visitRow)
-      : [messageRow("Aucune visite ne correspond à votre recherche.")]),
+    ...(rows.length ? rows.map(visitRow) : [messageRow(empty)]),
   );
 }
 
@@ -380,7 +383,6 @@ async function loadList() {
       : (data.registrations ?? data.items ?? []);
     visits = list.map(normalize);
     fillSchoolFilter();
-    updateStats();
     render();
   } catch (error) {
     if (error.status === 401) display(null);
@@ -388,7 +390,7 @@ async function loadList() {
   }
 }
 
-// Délégation : le bouton « Charger la liste » est recréé quand on se déconnecte
+// Délégation : le bouton « Charger la liste » est recréé après une déconnexion
 body.addEventListener("click", (event) => {
   if (event.target.closest("#load-list")) loadList();
 });
