@@ -222,7 +222,7 @@ $group->post('/summary/email', function (Request $request) use ($db): Response {
     }
 
     $eventId = (int)(getenv('EVENT_ID') ?: 1);
-    $groups  = (new Repository($db(), $eventId))->summary(new Filters(null, null))['groups'];
+    $groups  = (new Repository($db(), $eventId))->summary(Filters::fromQuery([])['filters'])['groups'];
 
     if ($format === 'csv') {
         $content = SummaryExport::csv($groups);
