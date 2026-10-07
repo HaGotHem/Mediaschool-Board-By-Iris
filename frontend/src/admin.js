@@ -264,6 +264,40 @@ async function startEdit() {
   visitForm.elements.namedItem("last_name").focus();
 }
 
+async function stratSupp(visit) {
+  const name = `${visit.first_name} ${visit.last_name}`.trim();
+
+  if (!confirm(`Supprimer la visite de ${name} ? Cette action est définitive.`))
+    return;
+
+  const button = document.querySelector("#infosupprimer");
+  button.disabled = true; 
+
+  try {
+    await api(`/admin/registrations/${visit.id}`, { method: "DELETE" });
+
+    // On ne touche à l'affichage qu'une fois la suppression confirmée par le serveur
+    visits = visits.filter((v) => v.id !== visit.id);
+    currentVisit = null;
+    dialog.close();
+    fillSchoolFilter();
+    render();
+    loadStats();
+    showMessage(message, "La visite a été supprimée.", true);
+  } catch (error) {
+    if (error.status === 401) {
+      dialog.close();
+      display(null);
+    }
+    showMessage(message, error.message);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+document.querySelector("#infosupprimer").addEventListener("click", () => {
+  stratSupp(currentVisit);
+})
 document.querySelector("#infoedit").addEventListener("click", startEdit);
 document
   .querySelector("#visit-cancel")
