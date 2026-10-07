@@ -120,6 +120,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3">
               <h3 class="card-title">Liste des visites</h3>
               <div class="flex flex-wrap gap-2">
+                <!-- Activés par admin.js dès que l'utilisateur est connecté -->
                 <button id="export-csv" class="btn btn-sm btn-outline" type="button" disabled>CSV</button>
                 <button id="export-pdf" class="btn btn-sm btn-outline" type="button" disabled>PDF</button>
                 <button id="send-recap" class="btn btn-sm btn-secondary" type="button" disabled>
@@ -181,7 +182,6 @@
       </div>
       <form method="dialog" class="modal-backdrop"><button aria-label="Fermer">fermer</button></form>
     </dialog>
-
     <script type="module" src="/src/admin.js"></script>
   </body>
 </html>

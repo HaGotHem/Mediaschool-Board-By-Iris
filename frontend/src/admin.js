@@ -20,6 +20,10 @@ function display(user) {
   document.querySelector("#signed-in").textContent = user
     ? `Connecté : ${user.username}`
     : "";
+  // Les exports ne dépendent pas de la liste chargée : actifs dès la connexion
+  for (const id of ["#export-csv", "#export-pdf"]) {
+    document.querySelector(id).disabled = !user;
+  }
   if (user) loadStats();
 }
 
@@ -229,3 +233,47 @@ body.addEventListener("click", (event) => {
 });
 searchInput.addEventListener("input", render);
 schoolSelect.addEventListener("change", render);
+
+async function downloadFile(buttonId, path, filename) {
+  const button = document.querySelector(buttonId);
+  button.disabled = true;
+  try {
+    const response = await fetch(`/api/admin/exports/${path}`, {
+      credentials: "same-origin",
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      const error = new Error(
+        payload.error?.message || `Export impossible (${response.status}).`,
+      );
+      error.status = response.status;
+      throw error;
+    }
+    const url = URL.createObjectURL(await response.blob());
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (error) {
+    if (error.status === 401) display(null);
+    showMessage(message, error.message);
+  } finally {
+    // Ne pas réactiver le bouton si on a été déconnecté entre-temps
+    button.disabled = dashboard.hidden;
+  }
+}
+
+// CSV = liste complète des inscrits ; PDF = récapitulatif agrégé
+document
+  .querySelector("#export-csv")
+  .addEventListener("click", () =>
+    downloadFile("#export-csv", "registrations/csv", "inscrits-salon.csv"),
+  );
+document
+  .querySelector("#export-pdf")
+  .addEventListener("click", () =>
+    downloadFile("#export-pdf", "pdf", "recap-salon.pdf"),
+  );
