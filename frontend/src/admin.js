@@ -267,14 +267,29 @@ async function startEdit() {
   visitForm.elements.namedItem("last_name").focus();
 }
 
-async function stratSupp(visit) {
+const confirmDialog = document.querySelector("#confirm-dialog");
+
+function askConfirmation(name) {
+  document.querySelector("#confirm-name").textContent = name;
+  return new Promise((resolve) => {
+    confirmDialog.returnValue = "";
+    confirmDialog.addEventListener(
+      "close",
+      () => resolve(confirmDialog.returnValue === "confirm"),
+      { once: true },
+    );
+    confirmDialog.showModal();
+  });
+}
+
+async function startSupp(visit) {
   const name = `${visit.first_name} ${visit.last_name}`.trim();
 
-  if (!confirm(`Supprimer la visite de ${name} ? Cette action est définitive.`))
+  if (!(await askConfirmation(name))) 
     return;
 
   const button = document.querySelector("#infosupprimer");
-  button.disabled = true; 
+  button.disabled = true;
 
   try {
     await api(`/admin/registrations/${visit.id}`, { method: "DELETE" });
@@ -299,7 +314,7 @@ async function stratSupp(visit) {
 }
 
 document.querySelector("#infosupprimer").addEventListener("click", () => {
-  stratSupp(currentVisit);
+  startSupp(currentVisit);
 })
 document.querySelector("#infoedit").addEventListener("click", startEdit);
 document
