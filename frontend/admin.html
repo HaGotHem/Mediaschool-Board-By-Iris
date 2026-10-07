@@ -8,13 +8,23 @@
   </head>
   <body class="bg-base-200 text-base-content min-h-screen">
     <header class="bg-secondary">
-      <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+      <div
+        class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4"
+      >
         <div class="flex items-center gap-4">
-          <img class="h-9" src="./logo/ms_logo_cmjn_blanc_1.png" alt="Logo Mediaschool" />
+          <img
+            class="h-9"
+            src="./logo/ms_logo_cmjn_blanc_1.png"
+            alt="Logo Mediaschool"
+          />
           <span class="hidden sm:block h-6 w-px bg-white/30"></span>
-          <h1 class="hidden sm:block text-white font-semibold">Espace équipe du salon</h1>
+          <h1 class="hidden sm:block text-white font-semibold">
+            Espace équipe du salon
+          </h1>
         </div>
-        <a class="btn btn-sm btn-ghost text-white" href="/">Formulaire public</a>
+        <a class="btn btn-sm btn-ghost text-white" href="/"
+          >Formulaire public</a
+        >
       </div>
     </header>
 
@@ -23,17 +33,32 @@
 
       <!-- Connexion -->
       <section id="login-section">
-        <div class="card bg-base-100 shadow-xl max-w-3xl mx-auto overflow-hidden md:card-side">
-          <div class="bg-primary text-primary-content p-8 md:w-5/12 flex flex-col justify-between gap-6">
-            <svg class="size-12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <div
+          class="card bg-base-100 shadow-xl max-w-3xl mx-auto overflow-hidden md:card-side"
+        >
+          <div
+            class="bg-primary text-primary-content p-8 md:w-5/12 flex flex-col justify-between gap-6"
+          >
+            <svg
+              class="size-12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
               <rect x="4" y="11" width="16" height="10" rx="2" />
               <path d="M8 11V7a4 4 0 0 1 8 0v4" />
             </svg>
             <div>
-              <h2 class="text-2xl font-bold leading-tight">Retrouvez les visiteurs de votre salon</h2>
-              <p class="mt-3 text-sm">
-                Consultez les fiches, filtrez par école et exportez le récapitulatif de la journée.
+              <h2 class="text-2xl font-bold leading-tight">
+                Retrouvez les visiteurs de votre salon
+              </h2>
+              <p class="mt-3 text-sm opacity-90">
+                Consultez les fiches, filtrez par école et exportez le
+                récapitulatif de la journée.
               </p>
             </div>
           </div>
@@ -42,16 +67,29 @@
             <p class="text-base-content/70">Réservé à l’équipe du salon.</p>
             <form id="login-form" class="space-y-4 mt-4">
               <div>
-                <label for="username" class="block font-medium">Identifiant</label>
-                <input id="username" name="username" class="input input-bordered w-full mt-1"
-                  autocomplete="username" required />
+                <label for="username" class="font-medium">Identifiant</label>
+                <input
+                  id="username"
+                  name="username"
+                  class="input input-bordered w-full mt-1"
+                  autocomplete="username"
+                  required
+                />
               </div>
               <div>
-                <label for="password" class="block font-medium">Mot de passe</label>
-                <input id="password" name="password" type="password"
-                  class="input input-bordered w-full mt-1" autocomplete="current-password" required />
+                <label for="password" class="font-medium">Mot de passe</label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  class="input input-bordered w-full mt-1"
+                  autocomplete="current-password"
+                  required
+                />
               </div>
-              <button class="btn btn-primary w-full min-h-12" type="submit">Se connecter</button>
+              <button class="btn btn-primary w-full min-h-12" type="submit">
+                Se connecter
+              </button>
             </form>
           </div>
         </div>
@@ -64,18 +102,31 @@
             <h2 class="text-3xl font-bold text-secondary">Visites du salon</h2>
             <p id="signed-in" class="text-sm text-base-content/70 mt-1"></p>
           </div>
-          <button id="logout" class="btn btn-outline btn-secondary">Se déconnecter</button>
+          <button id="logout" class="btn btn-outline btn-secondary">
+            Se déconnecter
+          </button>
         </div>
 
         <!-- Statistiques -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div class="card bg-base-100 shadow-sm border-l-4 border-primary">
             <div class="card-body flex-row items-center gap-4 p-5">
-              <div class="rounded-full bg-primary text-primary-content p-3">
-                <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+              <div class="rounded-full bg-primary/10 text-primary p-3">
+                <svg
+                  class="size-6"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path
+                    d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
+                  />
                 </svg>
               </div>
               <div>
@@ -86,10 +137,19 @@
           </div>
           <div class="card bg-base-100 shadow-sm border-l-4 border-secondary">
             <div class="card-body flex-row items-center gap-4 p-5">
-              <div class="rounded-full bg-secondary text-secondary-content p-3">
-                <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M22 10 12 5 2 10l10 5 10-5z" /><path d="M6 12v5c3 2 9 2 12 0v-5" />
+              <div class="rounded-full bg-secondary/10 text-secondary p-3">
+                <svg
+                  class="size-6"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M22 10 12 5 2 10l10 5 10-5z" />
+                  <path d="M6 12v5c3 2 9 2 12 0v-5" />
                 </svg>
               </div>
               <div>
@@ -100,14 +160,25 @@
           </div>
           <div class="card bg-base-100 shadow-sm border-l-4 border-base-content">
             <div class="card-body flex-row items-center gap-4 p-5">
-              <div class="rounded-full bg-base-content text-base-100 p-3">
-                <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+              <div class="rounded-full bg-accent/10 text-accent p-3">
+                <svg
+                  class="size-6"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 6v6l4 2" />
                 </svg>
               </div>
               <div>
-                <p class="text-sm text-base-content/70">Dernière synchronisation</p>
+                <p class="text-sm text-base-content/70">
+                  Dernière synchronisation
+                </p>
                 <p id="stat-sync" class="text-xl font-bold">—</p>
               </div>
             </div>
@@ -121,18 +192,46 @@
               <h3 class="card-title">Liste des visites</h3>
               <div class="flex flex-wrap gap-2">
                 <!-- Activés par admin.js dès que l'utilisateur est connecté -->
-                <button id="export-csv" class="btn btn-sm btn-outline" type="button" disabled>CSV</button>
-                <button id="export-pdf" class="btn btn-sm btn-outline" type="button" disabled>PDF</button>
-                <button id="send-recap" class="btn btn-sm btn-secondary" type="button" disabled>
+                <button
+                  id="export-csv"
+                  class="btn btn-sm btn-outline"
+                  type="button"
+                  disabled
+                >
+                  CSV
+                </button>
+                <button
+                  id="export-pdf"
+                  class="btn btn-sm btn-outline"
+                  type="button"
+                  disabled
+                >
+                  PDF
+                </button>
+                <button
+                  id="send-recap"
+                  class="btn btn-sm btn-secondary"
+                  type="button"
+                  disabled
+                >
                   Envoyer le récapitulatif
                 </button>
               </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <input id="filter-search" type="search" class="input input-bordered w-full sm:col-span-2"
-                placeholder="Rechercher un nom ou un e-mail" aria-label="Rechercher une visite" />
-              <select id="filter-school" class="select select-bordered w-full" aria-label="Filtrer par école">
+              <input
+                id="filter-search"
+                type="search"
+                class="input input-bordered w-full sm:col-span-2"
+                placeholder="Rechercher un nom ou un e-mail"
+                aria-label="Rechercher une visite"
+              />
+              <select
+                id="filter-school"
+                class="select select-bordered w-full"
+                aria-label="Filtrer par école"
+              >
                 <option value="">Toutes les écoles</option>
               </select>
             </div>
@@ -150,12 +249,19 @@
                 <tbody id="visits-body">
                   <tr>
                     <td colspan="4">
-                      <div class="flex flex-col items-center gap-3 py-10 text-center">
+                      <div
+                        class="flex flex-col items-center gap-3 py-10 text-center"
+                      >
                         <p class="font-medium">Aucune visite chargée</p>
                         <p class="text-sm text-base-content/70 max-w-sm">
-                          Chargez la liste pour afficher les visiteurs enregistrés sur le salon.
+                          Chargez la liste pour afficher les visiteurs
+                          enregistrés sur le salon.
                         </p>
-                        <button id="load-list" class="btn btn-primary" type="button">
+                        <button
+                          id="load-list"
+                          class="btn btn-primary"
+                          type="button"
+                        >
                           Charger la liste
                         </button>
                       </div>
@@ -171,16 +277,163 @@
 
     <!-- Fiche détaillée d'une visite -->
     <dialog id="visit-dialog" class="modal">
-      <div class="modal-box">
+      <div class="modal-box max-w-2xl">
         <h3 id="visit-title" class="text-lg font-bold text-secondary"></h3>
-        <dl id="visit-details" class="mt-4 grid grid-cols-3 gap-x-4 gap-y-3 text-sm"></dl>
-        <div class="modal-action">
-          <form method="dialog">
-            <button class="btn btn-secondary">Fermer</button>
-          </form>
+        <div id="visit-message" role="alert" hidden></div>
+
+        <!-- Mode lecture -->
+        <div id="visit-view">
+          <dl
+            id="visit-details"
+            class="mt-4 grid grid-cols-3 gap-x-4 gap-y-3 text-sm"
+          ></dl>
+          <div class="modal-action">
+            <button class="btn btn-warning"
+            id="infosupprimer" type="button">
+              Supprimer
+            </button>
+            <button class="btn btn-primary" id="infoedit" type="button">
+              Modifier
+            </button>
+            <form method="dialog">
+              <button class="btn btn-secondary">Fermer</button>
+            </form>
+          </div>
         </div>
+
+        <!-- Mode modification : mêmes champs et mêmes règles que le formulaire public -->
+        <form id="visit-form" class="mt-4" novalidate hidden>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="edit-last-name" class="font-medium">Nom *</label>
+              <input
+                id="edit-last-name"
+                name="last_name"
+                class="input input-bordered w-full mt-1"
+                required
+                maxlength="100"
+              />
+            </div>
+            <div>
+              <label for="edit-first-name" class="font-medium">Prénom *</label>
+              <input
+                id="edit-first-name"
+                name="first_name"
+                class="input input-bordered w-full mt-1"
+                required
+                maxlength="100"
+              />
+            </div>
+            <div>
+              <label for="edit-birth-date" class="font-medium"
+                >Date de naissance *</label
+              >
+              <input
+                id="edit-birth-date"
+                name="birth_date"
+                class="input input-bordered w-full mt-1"
+                inputmode="numeric"
+                placeholder="JJ/MM/AAAA"
+                maxlength="10"
+                required
+              />
+            </div>
+            <div>
+              <label for="edit-phone" class="font-medium">Téléphone *</label>
+              <input
+                id="edit-phone"
+                name="phone"
+                type="tel"
+                class="input input-bordered w-full mt-1"
+                maxlength="30"
+                required
+              />
+            </div>
+            <div class="sm:col-span-2">
+              <label for="edit-email" class="font-medium"
+                >Adresse e-mail *</label
+              >
+              <input
+                id="edit-email"
+                name="email"
+                type="email"
+                class="input input-bordered w-full mt-1"
+                maxlength="254"
+                required
+              />
+            </div>
+            <div>
+              <label for="edit-current-class" class="font-medium"
+                >Classe actuelle</label
+              >
+              <select
+                id="edit-current-class"
+                name="current_class_id"
+                class="select select-bordered w-full mt-1"
+              >
+                <option value="">Non renseignée</option>
+              </select>
+            </div>
+            <div>
+              <label for="edit-school" class="font-medium">École visée *</label>
+              <select
+                id="edit-school"
+                name="school_id"
+                class="select select-bordered w-full mt-1"
+                required
+              >
+                <option value="">Choisir une école</option>
+              </select>
+            </div>
+            <div>
+              <label for="edit-entry-level" class="font-medium"
+                >Niveau d’inscription *</label
+              >
+              <select
+                id="edit-entry-level"
+                name="entry_level_id"
+                class="select select-bordered w-full mt-1"
+                required
+              >
+                <option value="">Choisir un niveau</option>
+              </select>
+            </div>
+            <div>
+              <label for="edit-specialty" class="font-medium"
+                >Spécialité envisagée</label
+              >
+              <select
+                id="edit-specialty"
+                name="specialty_id"
+                class="select select-bordered w-full mt-1"
+              >
+                <option value="">Je ne sais pas encore</option>
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label for="edit-remark" class="font-medium">Remarque</label>
+              <textarea
+                id="edit-remark"
+                name="remark"
+                class="textarea textarea-bordered w-full mt-1"
+                rows="3"
+                maxlength="1000"
+              ></textarea>
+            </div>
+          </div>
+          <div class="modal-action">
+            <button id="visit-cancel" class="btn btn-ghost" type="button">
+              Annuler
+            </button>
+            <button id="visit-save" class="btn btn-primary" type="submit">
+              Enregistrer
+            </button>
+          </div>
+        </form>
       </div>
-      <form method="dialog" class="modal-backdrop"><button aria-label="Fermer">fermer</button></form>
+      <form method="dialog" class="modal-backdrop">
+        <button aria-label="Fermer">fermer</button>
+      </form>
     </dialog>
     <script type="module" src="/src/admin.js"></script>
   </body>
