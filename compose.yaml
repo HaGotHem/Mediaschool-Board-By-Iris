@@ -38,6 +38,8 @@ services:
       SMTP_FROM: ${SMTP_FROM:-}
       SMTP_ENCRYPTION: ${SMTP_ENCRYPTION:-tls}
       SUMMARY_RECIPIENT_ALLOWLIST: ${SUMMARY_RECIPIENT_ALLOWLIST:-}
+      BREVO_API_KEY: ${BREVO_API_KEY:?Renseigner BREVO_API_KEY dans .env}
+      BREVO_SENDER_EMAIL: ${BREVO_SENDER_EMAIL}
     depends_on:
       db:
         condition: service_healthy

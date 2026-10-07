@@ -7,6 +7,7 @@ use Board\Security\{AuthMiddleware, CsrfMiddleware};
 use Psr\Http\Message\{ServerRequestInterface as Request, ResponseInterface as Response};
 use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
+use Board\Export\SummaryMailer;
 
 // Routes privées du back-office : Auth puis CSRF, jamais de route admin en dehors de ce groupe.
 // Chargé par src/app.php.
@@ -200,6 +201,44 @@ return static function (App $app, Closure $db): void {
                 ->withHeader('X-Content-Type-Options', 'nosniff');
         });
 
-        $group->post('/summary/email', $todo);                 // EXP-03
+        // EXP-03 : envoi du récapitulatif agrégé par e-mail (Brevo)
+$group->post('/summary/email', function (Request $request) use ($db): Response {
+    if (!str_starts_with(strtolower($request->getHeaderLine('Content-Type')), 'application/json')) {
+        return Json::error('UNSUPPORTED_MEDIA_TYPE', 'Le format JSON est attendu.', 415);
+    }
+    $body = $request->getParsedBody();
+    if (!is_array($body) || array_is_list($body)) {
+        return Json::error('INVALID_JSON', 'Corps de requête invalide.', 400);
+    }
+
+    $recipient = trim((string)($body['recipient'] ?? ''));
+    $format    = (string)($body['format'] ?? 'csv');
+
+    if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+        return Json::error('VALIDATION_FAILED', 'Adresse e-mail invalide.', 422, ['recipient' => 'Adresse invalide.']);
+    }
+    if (!in_array($format, ['csv', 'pdf'], true)) {
+        return Json::error('VALIDATION_FAILED', 'Format invalide.', 422, ['format' => 'Format invalide.']);
+    }
+
+    $eventId = (int)(getenv('EVENT_ID') ?: 1);
+    $groups  = (new Repository($db(), $eventId))->summary(new Filters(null, null))['groups'];
+
+    if ($format === 'csv') {
+        $content = SummaryExport::csv($groups);
+    } else {
+        $event   = $db()->get('events', ['label'], ['id' => $eventId]);
+        $content = SummaryExport::pdf($event['label'] ?? 'Salon', $groups);
+    }
+
+    try {
+        SummaryMailer::send($recipient, $format, $content);
+    } catch (\Throwable $e) {
+        error_log('Envoi récapitulatif : ' . $e->getMessage());
+        return Json::error('MAIL_FAILED', 'Envoi impossible pour le moment.', 502);
+    }
+
+    return Json::send(['data' => ['sent' => true]]);
+});                // EXP-03
     })->add(new CsrfMiddleware())->add(new AuthMiddleware());
 };

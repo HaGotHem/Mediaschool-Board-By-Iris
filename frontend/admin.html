@@ -434,6 +434,80 @@
       <form method="dialog" class="modal-backdrop">
         <button aria-label="Fermer">fermer</button>
       </form>
+        </dialog>
+
+    <!-- Envoi du récapitulatif par e-mail -->
+    <dialog id="send-dialog" class="modal">
+      <div class="modal-box max-w-md">
+        <h3 class="text-lg font-bold text-secondary">
+          Envoyer le récapitulatif
+        </h3>
+        <p class="text-sm text-base-content/70 mt-1">
+          Le récapitulatif du salon sera envoyé en pièce jointe à l’adresse
+          indiquée.
+        </p>
+
+        <form id="send-form" class="mt-5 space-y-4" novalidate>
+          <div>
+            <label for="send-recipient" class="font-medium">
+              Adresse e-mail du destinataire *
+            </label>
+            <input
+              id="send-recipient"
+              name="recipient"
+              type="email"
+              class="input input-bordered w-full mt-1"
+              placeholder="prenom.nom@exemple.fr"
+              autocomplete="email"
+              maxlength="254"
+              required
+            />
+            <p
+              id="send-error"
+              class="text-sm text-error mt-1"
+              role="alert"
+              hidden
+            ></p>
+          </div>
+
+          <div>
+            <span class="font-medium">Format</span>
+            <div class="flex gap-6 mt-2">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="format"
+                  value="csv"
+                  class="radio radio-secondary"
+                  checked
+                />
+                CSV
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="format"
+                  value="pdf"
+                  class="radio radio-secondary"
+                />
+                PDF
+              </label>
+            </div>
+          </div>
+
+          <div class="modal-action">
+            <button id="send-cancel" class="btn btn-ghost" type="button">
+              Annuler
+            </button>
+            <button id="send-submit" class="btn btn-secondary" type="submit">
+              Envoyer
+            </button>
+          </div>
+        </form>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button aria-label="Fermer">fermer</button>
+      </form>
     </dialog>
     <script type="module" src="/src/admin.js"></script>
   </body>
