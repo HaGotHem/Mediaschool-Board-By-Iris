@@ -90,6 +90,43 @@ return static function (App $app, Closure $db): void {
             return Json::send(['data' => $repo->find((int)$args['id'])]);
         });
 
+        // Suppression d'une inscription du salon actif (CSRF exigé par le groupe).
+        // Le visiteur est supprimé aussi s'il n'a plus aucune inscription : pas de données personnelles orphelines.
+        $group->delete('/registrations/{id:[0-9]+}', function (Request $request, Response $response, array $args) use ($db): Response {
+            if (strlen($args['id']) > 18) {
+                return Json::error('NOT_FOUND', 'Fiche introuvable.', 404);
+            }
+            $pdo = $db()->pdo;
+            $pdo->beginTransaction();
+            try {
+                $delete = $pdo->prepare(
+                    'DELETE FROM registrations WHERE id = :id AND event_id = :event_id RETURNING visitor_id'
+                );
+                $delete->bindValue(':id', (int)$args['id'], PDO::PARAM_INT);
+                $delete->bindValue(':event_id', (int)(getenv('EVENT_ID') ?: 1), PDO::PARAM_INT);
+                $delete->execute();
+                $visitorId = $delete->fetchColumn();
+                if ($visitorId === false) { // absente ou d'un autre salon : 404, on ne confirme pas son existence
+                    $pdo->rollBack();
+                    return Json::error('NOT_FOUND', 'Fiche introuvable.', 404);
+                }
+
+                $orphan = $pdo->prepare(
+                    'DELETE FROM visitors v WHERE v.id = :id
+                     AND NOT EXISTS (SELECT 1 FROM registrations r WHERE r.visitor_id = v.id)'
+                );
+                $orphan->bindValue(':id', (int)$visitorId, PDO::PARAM_INT);
+                $orphan->execute();
+                $pdo->commit();
+            } catch (\Throwable $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $e;
+            }
+            return Json::send(['data' => ['id' => (int)$args['id'], 'deleted' => true]]);
+        });
+
         // Export nominatif : toutes les fiches, du premier au dernier inscrit, sans l'id.
         $group->get('/exports/registrations/csv', function (Request $request, Response $response) use ($db): Response {
             ['filters' => $filters, 'errors' => $errors] = Filters::fromQuery($request->getQueryParams());
