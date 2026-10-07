@@ -14,3 +14,5 @@ backend/.phpunit.cache/
 livrables/**/captures-privees/
 .DS_Store
 reports/
+docker-compose.yaml
+docker-compose.dev.yaml
