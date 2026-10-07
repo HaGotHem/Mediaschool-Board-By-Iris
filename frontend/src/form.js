@@ -7,7 +7,6 @@ const formSection = document.querySelector("#form-section");
 const confirmation = document.querySelector("#confirmation");
 const confirmationTitle = document.querySelector("#confirmation-title");
 
-
 const PATTERNS = {
   // JJ/MM/AAAA
   birthDate: /^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/(\d{4})$/,
@@ -41,17 +40,36 @@ function parseBirthDate(value) {
   return { iso: `${year}-${month}-${day}` };
 }
 
-const CHECKED_FIELDS = ["last_name", "first_name", "birth_date", "phone", "email"];
+const CHECKED_FIELDS = [
+  "last_name",
+  "first_name",
+  "birth_date",
+  "phone",
+  "email",
+];
+
+// Un message d'erreur sous chaque champ vérifié, relié pour les lecteurs d'écran
+for (const name of CHECKED_FIELDS) {
+  const input = form.elements.namedItem(name);
+  const errorEl = document.createElement("p");
+  errorEl.id = `${input.id}-error`;
+  errorEl.className = "text-sm mt-1 text-error";
+  errorEl.hidden = true;
+  input.after(errorEl);
+  input.setAttribute("aria-describedby", errorEl.id);
+}
 
 function validateField(input) {
   const value = input.value.trim();
-  let error = ""; // Champ vide : c'est l'attribut "required" qui s'en charge
+  let error = "";
 
-  if (value) {
+  if (!value) {
+    error = "Ce champ est obligatoire.";
+  } else {
     if (input.name === "birth_date") {
       error = parseBirthDate(value).error ?? "";
     } else if (input.name === "email" && !PATTERNS.email.test(value)) {
-    error = "Adresse e-mail invalide (ex. prenom.nom@exemple.fr).";
+      error = "Adresse e-mail invalide (ex. prenom.nom@exemple.fr).";
     } else if (input.name === "phone" && !PATTERNS.phone.test(value)) {
       error = "Numéro invalide (ex. 06 12 34 56 78).";
     } else if (
@@ -62,9 +80,19 @@ function validateField(input) {
     }
   }
   input.setCustomValidity(error);
+
+  // Affichage de l'erreur propre à ce champ uniquement
+  const errorEl = document.getElementById(`${input.id}-error`);
+  errorEl.textContent = error;
+  errorEl.hidden = !error;
+  input.classList.toggle("input-error", Boolean(error));
+  input.setAttribute("aria-invalid", String(Boolean(error)));
+  return !error;
 }
 
-// Revalide à chaque frappe pour que l'erreur disparaisse dès que c'est corrigé
+// Validation à chaque frappe, champ par champ.
+// "input" (et non "keydown") : la valeur est déjà à jour quand on valide.
+// Écouté sur le formulaire, il passe après le formatage de la date de naissance.
 form.addEventListener("input", (event) => {
   if (CHECKED_FIELDS.includes(event.target.name)) validateField(event.target);
 });
@@ -78,7 +106,8 @@ function formatBirthDate(raw, isDeleting) {
   const year = d.slice(4);
 
   if (d.length > 4) return `${day}/${month}/${year}`;
-  if (d.length === 4) return isDeleting ? `${day}/${month}` : `${day}/${month}/`;
+  if (d.length === 4)
+    return isDeleting ? `${day}/${month}` : `${day}/${month}/`;
   if (d.length > 2) return `${day}/${month}`;
   if (d.length === 2) return isDeleting ? day : `${day}/`;
   return d;
@@ -114,7 +143,8 @@ try {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  for (const name of CHECKED_FIELDS) validateField(form.elements.namedItem(name));
+  for (const name of CHECKED_FIELDS)
+    validateField(form.elements.namedItem(name));
   if (!form.reportValidity()) return;
 
   const payload = Object.fromEntries(new FormData(form));
@@ -138,7 +168,8 @@ form.addEventListener("submit", async (event) => {
       );
     form.reset();
     message.hidden = true;
-    document.querySelector("#confirmation-reference").textContent = data.reference;
+    document.querySelector("#confirmation-reference").textContent =
+      data.reference;
     formSection.hidden = true;
     confirmation.hidden = false;
     window.scrollTo({ top: 0 });
