@@ -21,11 +21,20 @@ liveValidate(form);
 try {
   const references = await api("/references");
   fillReferenceSelects(form, references);
-  if (references.event)
-    document.querySelector("#event-label").textContent = references.event.label;
   button.disabled = false;
 } catch (error) {
   showMessage(message, `Formulaire indisponible : ${error.message}`);
+}
+
+
+let resetTimer;
+
+function showForm() {
+  clearTimeout(resetTimer);
+  confirmation.hidden = true;
+  formSection.hidden = false;
+  window.scrollTo({ top: 0 });
+  form.elements[0].focus();
 }
 
 form.addEventListener("submit", async (event) => {
@@ -52,12 +61,12 @@ form.addEventListener("submit", async (event) => {
     confirmation.hidden = false;
     window.scrollTo({ top: 0 });
     confirmationTitle.focus(); // pour les lecteurs d'écran
+    resetTimer = setTimeout(showForm, 3000);
   } catch (error) {
     showMessage(message, error.message);
     message.focus();
   } finally {
     button.disabled = false;
     button.textContent = "Enregistrer ma visite";
-    message.focus();
   }
 });
