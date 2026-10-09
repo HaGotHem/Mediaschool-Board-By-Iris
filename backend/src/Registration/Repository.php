@@ -27,22 +27,19 @@ final class Repository
 
     /**
      * Crée le visiteur (ou le retrouve par e-mail) puis l'inscription, avec le premier créneau libre.
+     * Sans créneau libre, l'inscription est enregistrée sans rendez-vous.
      *
      * @param array<string,mixed> $v valeurs validées
-     * @return array{id:int, appointment_date:string, time_slot:string}|null null si plus aucun créneau
+     * @return array{id:int, appointment_date:?string, time_slot:?string}
      * @throws DuplicateRegistrationException visiteur déjà inscrit à ce salon
      */
-    public function create(array $v): ?array
+    public function create(array $v): array
     {
         $pdo = $this->db->pdo;
         $pdo->beginTransaction();
         try {
             $visitorId = $this->visitorId($pdo, $v);
             $registration = $this->insertRegistration($pdo, $visitorId, $v);
-            if ($registration === null) {
-                $pdo->rollBack();
-                return null;
-            }
             $pdo->commit();
             return $registration;
         } catch (PDOException $e) {
@@ -287,10 +284,15 @@ final class Repository
 
     /**
      * @param array<string,mixed> $v
-     * @return array{id:int, appointment_date:string, time_slot:string}|null
+     * @return array{id:int, appointment_date:?string, time_slot:?string}
      */
-    private function insertRegistration(PDO $pdo, int $visitorId, array $v): ?array
+    private function insertRegistration(PDO $pdo, int $visitorId, array $v): array
     {
+        $fields = [
+            ':visitor_id' => $visitorId, ':event_id' => $this->eventId,
+            ':current_class_id' => $v['current_class_id'], ':school_id' => $v['school_id'],
+            ':entry_level_id' => $v['entry_level_id'], ':specialty_id' => $v['specialty_id'], ':remark' => $v['remark'],
+        ];
         $pick = $pdo->prepare(
             'SELECT appointment_date, time_slot_id, time_slot_label, advisor_id
              FROM available_slots WHERE event_id = :event_id
@@ -310,12 +312,9 @@ final class Repository
             $pick->execute([':event_id' => $this->eventId]);
             $slot = $pick->fetch(PDO::FETCH_ASSOC);
             if ($slot === false) {
-                return null;
+                break;
             }
-            $insert->execute([
-                ':visitor_id' => $visitorId, ':event_id' => $this->eventId,
-                ':current_class_id' => $v['current_class_id'], ':school_id' => $v['school_id'],
-                ':entry_level_id' => $v['entry_level_id'], ':specialty_id' => $v['specialty_id'], ':remark' => $v['remark'],
+            $insert->execute($fields + [
                 ':appointment_date' => $slot['appointment_date'], ':time_slot_id' => $slot['time_slot_id'], ':advisor_id' => $slot['advisor_id'],
             ]);
             $id = $insert->fetchColumn();
@@ -323,6 +322,8 @@ final class Repository
                 return ['id' => (int)$id, 'appointment_date' => $slot['appointment_date'], 'time_slot' => $slot['time_slot_label']];
             }
         }
-        return null;
+        // Plus de créneau libre (ou tous pris pendant les essais) : inscription sans rendez-vous.
+        $insert->execute($fields + [':appointment_date' => null, ':time_slot_id' => null, ':advisor_id' => null]);
+        return ['id' => (int)$insert->fetchColumn(), 'appointment_date' => null, 'time_slot' => null];
     }
 }
