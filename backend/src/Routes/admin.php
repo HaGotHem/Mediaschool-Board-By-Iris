@@ -158,8 +158,8 @@ return static function (App $app, Closure $db): void {
                     JOIN visitors v ON v.id = r.visitor_id
                     JOIN schools s ON s.id = r.school_id
                     JOIN entry_levels el ON el.id = r.entry_level_id
-                    JOIN time_slots ts ON ts.id = r.time_slot_id
-                    JOIN advisors a ON a.id = r.advisor_id
+                    LEFT JOIN time_slots ts ON ts.id = r.time_slot_id
+                    LEFT JOIN advisors a ON a.id = r.advisor_id
                     LEFT JOIN current_classes cc ON cc.id = r.current_class_id
                     LEFT JOIN specialties sp ON sp.id = r.specialty_id
                     WHERE " . implode(' AND ', $where) . "

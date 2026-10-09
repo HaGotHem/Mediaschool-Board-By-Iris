@@ -6,7 +6,7 @@ use Psr\Http\Message\{ServerRequestInterface as Request, ResponseInterface as Re
 use Slim\App;
 
 // Routes publiques d'inscription. Chargé par src/app.php.
-// Ordre fermé : 503 → 415 → 400 → 422 → INSERT → 201 (409 sur doublon ou plus de créneau).
+// Ordre fermé : 503 → 415 → 400 → 422 → INSERT → 201 (409 sur doublon).
 return static function (App $app, Closure $db): void {
     $app->post('/api/registrations', function (Request $request) use ($db): Response {
         if (!filter_var(getenv('REGISTRATIONS_OPEN') ?: 'false', FILTER_VALIDATE_BOOLEAN)) {
@@ -39,15 +39,13 @@ return static function (App $app, Closure $db): void {
             }
             throw $e; // → 500 neutre via le gestionnaire d'erreurs, sans saisie dans les logs
         }
-        if ($registration === null) {
-            return Json::error('NO_SLOT_AVAILABLE', 'Tous les créneaux de rendez-vous sont complets.', 409);
-        }
-
         return Json::send(['data' => [
             // Pas de colonne UUID dans 003 : référence dérivée de l'identifiant, sans accès à une fiche publique.
             'reference' => sprintf('INS-%06d', $registration['id']),
             'message' => 'Votre visite est enregistrée.',
-            'appointment' => ['date' => $registration['appointment_date'], 'time_slot' => $registration['time_slot']],
+            // null quand tous les créneaux sont pris : inscription enregistrée sans rendez-vous.
+            'appointment' => $registration['time_slot'] === null ? null
+                : ['date' => $registration['appointment_date'], 'time_slot' => $registration['time_slot']],
         ]], 201);
     });
 
@@ -62,12 +60,12 @@ return static function (App $app, Closure $db): void {
                  JOIN visitors v ON v.id = r.visitor_id
                  JOIN schools s ON s.id = r.school_id
                  JOIN entry_levels l ON l.id = r.entry_level_id
-                 JOIN time_slots ts ON ts.id = r.time_slot_id
+                 LEFT JOIN time_slots ts ON ts.id = r.time_slot_id
                  ORDER BY r.id"
             )->fetchAll(PDO::FETCH_ASSOC);
             $text = count($rows) . " inscription(s)\n\n";
             foreach ($rows as $r) {
-                $text .= "#{$r['id']}  {$r['created_at']}  {$r['last_name']} {$r['first_name']} <{$r['email']}>  {$r['school']} / {$r['entry_level']}  RDV {$r['time_slot']}\n";
+                $text .= "#{$r['id']}  {$r['created_at']}  {$r['last_name']} {$r['first_name']} <{$r['email']}>  {$r['school']} / {$r['entry_level']}  RDV " . ($r['time_slot'] ?? 'aucun') . "\n";
             }
             $response = new \Slim\Psr7\Response(200);
             $response->getBody()->write($text);
