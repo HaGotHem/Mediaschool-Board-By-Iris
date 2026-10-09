@@ -3,7 +3,7 @@ export const PATTERNS = {
   // JJ/MM/AAAA
   birthDate: /^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/(\d{4})$/,
   // Numéros français
-  phone: /^(?:(?:\+|00)33\s?|0)[1-9](?:[\s.-]?\d{2}){4}$/,
+  phone: /^\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/,
   // Lettres (accents inclus), avec espaces, apostrophes ou tirets entre les mots
   name: /^\p{L}+(?:[\s'’-]\p{L}+)*$/u,
   email:
