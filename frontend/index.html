@@ -142,17 +142,42 @@
                 </div>
               </div>
             </fieldset>
-            <div class="grid grid-cols-1 gap-2">
-                <label for="remark">Remarque</label
-                ><textarea
-                  class="textarea mt-1"
-                  id="remark"
-                  name="remark"
-                  rows="3"
-                  maxlength="1000"
-                  aria-describedby="remark-help"
-                ></textarea>
+            <fieldset>
+              <legend class="font-bold text-lg mb-4">3. Rendez-vous</legend>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="preferred-date">Date souhaitée</label
+                  ><input
+                    class="input mt-1"
+                    type="date"
+                    id="preferred-date"
+                    name="preferred_date"
+                  />
+                </div>
+                <div>
+                  <label for="preferred-time">Heure souhaitée</label
+                  ><input
+                    class="input mt-1"
+                    type="time"
+                    id="preferred-time"
+                    name="preferred_time"
+                  />
+                </div>
               </div>
+              <p class="text-sm mt-1 text-base-content/70">
+                Facultatif. Du lundi au vendredi uniquement.
+              </p>
+            </fieldset>
+            <div>
+              <label for="remark">Remarque</label
+              ><textarea
+                class="textarea mt-1"
+                id="remark"
+                name="remark"
+                rows="3"
+                maxlength="1000"
+                aria-describedby="remark-help"
+              ></textarea>
               <p id="remark-help" class="text-sm mt-1 text-base-content/70">
                 Facultatif. Indiquez un souhait particulier ; évitez toute
                 information sensible ou les coordonnées d’un tiers.

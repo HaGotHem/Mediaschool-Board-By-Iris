@@ -138,3 +138,49 @@ export function toPayload(form) {
     payload[field] = payload[field] === "" ? null : Number(payload[field]);
   return payload;
 }
+
+// Rendez-vous facultatif : date + heure ensemble, en semaine, pas dans le passé
+export function appointmentErrors(dateValue, timeValue) {
+  const errors = { preferred_date: "", preferred_time: "" };
+  if (!dateValue && !timeValue) return errors;
+  if (!dateValue) errors.preferred_date = "Choisissez une date.";
+  if (!timeValue) errors.preferred_time = "Choisissez une heure.";
+  if (dateValue) {
+    const [year, month, day] = dateValue.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (date.getDay() === 0 || date.getDay() === 6)
+      errors.preferred_date = "Choisissez un jour du lundi au vendredi.";
+    else if (date < today)
+      errors.preferred_date = "La date ne peut pas être dans le passé.";
+  }
+  return errors;
+}
+
+// Message d'erreur sous la date et l'heure du rendez-vous + validation à la saisie
+export function attachAppointment(form) {
+  const inputs = ["preferred_date", "preferred_time"].map((name) =>
+    form.elements.namedItem(name),
+  );
+  for (const input of inputs) {
+    const errorEl = document.createElement("p");
+    errorEl.id = `${input.id}-error`;
+    errorEl.className = "text-sm mt-1 text-error";
+    errorEl.hidden = true;
+    input.after(errorEl);
+    input.setAttribute("aria-describedby", errorEl.id);
+    input.addEventListener("change", () => validateAppointment(form));
+  }
+  const today = new Date();
+  inputs[0].min = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+}
+
+export function validateAppointment(form) {
+  const date = form.elements.namedItem("preferred_date");
+  const time = form.elements.namedItem("preferred_time");
+  const errors = appointmentErrors(date.value, time.value);
+  showFieldError(date, errors.preferred_date);
+  showFieldError(time, errors.preferred_time);
+  return !errors.preferred_date && !errors.preferred_time;
+}

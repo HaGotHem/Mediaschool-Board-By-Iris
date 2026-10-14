@@ -2,10 +2,12 @@ import "./style.css";
 import { api, showMessage } from "./api.js";
 import {
   CHECKED_FIELDS,
+  attachAppointment,
   attachErrorSlots,
   fillReferenceSelects,
   liveValidate,
   toPayload,
+  validateAppointment,
   validateField,
 } from "./validation.js";
 const form = document.querySelector("#registration-form");
@@ -16,6 +18,7 @@ const confirmation = document.querySelector("#confirmation");
 const confirmationTitle = document.querySelector("#confirmation-title");
 
 attachErrorSlots(form);
+attachAppointment(form);
 liveValidate(form);
 
 try {
@@ -41,6 +44,7 @@ form.addEventListener("submit", async (event) => {
   event.preventDefault();
   for (const name of CHECKED_FIELDS)
     validateField(form.elements.namedItem(name));
+  validateAppointment(form);
   if (!form.reportValidity()) return;
 
   const payload = toPayload(form);
