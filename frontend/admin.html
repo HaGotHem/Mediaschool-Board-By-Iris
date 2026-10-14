@@ -243,12 +243,13 @@
                     <th>Visiteur</th>
                     <th>École visée</th>
                     <th>Niveau</th>
+                    <th>RDV souhaité</th>
                     <th class="text-right">Détails</th>
                   </tr>
                 </thead>
                 <tbody id="visits-body">
                   <tr>
-                    <td colspan="4">
+                    <td colspan="5">
                       <div
                         class="flex flex-col items-center gap-3 py-10 text-center"
                       >
@@ -429,6 +430,24 @@
               >
                 <option value="">Je ne sais pas encore</option>
               </select>
+            </div>
+            <div class="flex flex-col">
+              <label for="preferred-date">Date souhaitée</label>
+              <input
+                class="input mt-1"
+                type="date"
+                id="preferred-date"
+                name="preferred_date"
+              />
+            </div>
+            <div class="flex flex-col">
+                <label for="preferred-time">Heure souhaitée</label
+                ><input
+                class="input mt-1"
+                type="time"
+                id="preferred-time"
+                name="preferred_time"
+              />
             </div>
             <div class="sm:col-span-2">
               <label for="edit-remark" class="font-medium">Remarque</label>

@@ -112,6 +112,7 @@ function normalize(r) {
     level: label(r, "entry_level"),
     specialty: label(r, "specialty"),
     remark: r.remark ?? "",
+    appointment: formatAppointment(r.preferred_date, r.preferred_time),
   };
 }
 // ---------------------------------------------------------
@@ -120,6 +121,12 @@ const formatDate = (value) =>
   /^\d{4}-\d{2}-\d{2}/.test(value)
     ? value.slice(0, 10).split("-").reverse().join("/")
     : value;
+
+// « 2026-10-20 » + « 14:30:00 » -> « 20/10/2026 à 14h30 » ; vide si pas de rendez-vous demandé
+const formatAppointment = (date, time) =>
+  date
+    ? `${formatDate(date)} à ${String(time ?? "").slice(0, 5).replace(":", "h")}`
+    : "";
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -131,7 +138,7 @@ function el(tag, className, text) {
 function messageRow(text) {
   const tr = el("tr");
   const td = el("td", "py-10 text-center text-base-content/70", text);
-  td.colSpan = 4;
+  td.colSpan = 5;
   tr.append(td);
   return tr;
 }
@@ -148,7 +155,13 @@ function visitRow(v) {
   const school = el("td", "", v.school);
 
   const level = el("td");
-  level.append(el("span", "badge badge-outline badge-secondary", v.level));
+  level.append(el("span", "badge badge-outline badge-secondary w-full h-full", v.level));
+
+  const appointment = el(
+    "td",
+    v.appointment ? "whitespace-nowrap" : "text-base-content/50",
+    v.appointment || "—",
+  );
 
   const actions = el("td", "text-right");
   const btn = el("button", "btn btn-ghost btn-sm text-secondary", "Voir");
@@ -160,7 +173,7 @@ function visitRow(v) {
   btn.addEventListener("click", () => showVisit(v, btn));
   actions.append(btn);
 
-  tr.append(who, school, level, actions);
+  tr.append(who, school, level, appointment, actions);
   return tr;
 }
 
@@ -193,6 +206,7 @@ function openDetails(v) {
     ["École visée", v.school],
     ["Niveau", v.level],
     ["Spécialité", v.specialty],
+    ["RDV souhaité", v.appointment],
     ["Remarque", v.remark || "—"],
   ];
   const dl = document.querySelector("#visit-details");
@@ -257,6 +271,8 @@ async function startEdit() {
     school_id: r.school_id,
     entry_level_id: r.entry_level_id,
     specialty_id: r.specialty_id,
+    preferred_date: r.preferred_date,
+    preferred_time: r.preferred_time,
     remark: r.remark,
   };
   for (const [name, value] of Object.entries(values))

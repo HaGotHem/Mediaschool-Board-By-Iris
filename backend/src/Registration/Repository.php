@@ -74,7 +74,8 @@ final class Repository
 
         // Tri serveur fixe ; id en second critère pour une pagination stable.
         $select = $pdo->prepare(
-            "SELECT r.id, v.last_name, v.first_name, s.label AS school, l.label AS entry_level, r.created_at
+            "SELECT r.id, v.last_name, v.first_name, s.label AS school, l.label AS entry_level, r.created_at,
+                    r.preferred_date, r.preferred_time
              FROM registrations r
              JOIN visitors v ON v.id = r.visitor_id
              JOIN schools s ON s.id = r.school_id
@@ -97,6 +98,8 @@ final class Repository
             'first_name' => $row['first_name'],
             'school' => $row['school'],
             'entry_level' => $row['entry_level'],
+            'preferred_date' => $row['preferred_date'],
+            'preferred_time' => $row['preferred_time'],
             'registered_at' => (new \DateTimeImmutable($row['created_at']))->setTimezone($paris)->format(DATE_ATOM),
         ], $select->fetchAll(PDO::FETCH_ASSOC));
 
@@ -119,7 +122,7 @@ final class Repository
             "SELECT r.id, v.last_name, v.first_name, v.birth_date, v.phone, v.email,
                     r.current_class_id, cc.label AS current_class, r.school_id, s.label AS school,
                     r.entry_level_id, l.label AS entry_level, r.specialty_id, sp.label AS specialty,
-                    r.remark, r.created_at
+                    r.remark, r.created_at, r.preferred_date, r.preferred_time
              FROM registrations r
              JOIN visitors v ON v.id = r.visitor_id
              JOIN schools s ON s.id = r.school_id
@@ -153,6 +156,8 @@ final class Repository
             'specialty_id' => $row['specialty_id'] === null ? null : (int)$row['specialty_id'],
             'specialty' => $row['specialty'],
             'remark' => $row['remark'],
+            'preferred_date' => $row['preferred_date'] ?? null,
+            'preferred_time' => $row['preferred_time'] ?? null,
             'registered_at' => (new \DateTimeImmutable($row['created_at']))
                 ->setTimezone(new \DateTimeZone('Europe/Paris'))->format(DATE_ATOM),
         ];
@@ -173,14 +178,16 @@ final class Repository
             $registration = $pdo->prepare(
                 'UPDATE registrations
                  SET current_class_id = :current_class_id, school_id = :school_id,
-                     entry_level_id = :entry_level_id, specialty_id = :specialty_id, remark = :remark
+                     entry_level_id = :entry_level_id, specialty_id = :specialty_id, remark = :remark,
+                      preferred_date = :preferred_date, preferred_time = :preferred_time
                  WHERE id = :id AND event_id = :event_id
                  RETURNING visitor_id'
             );
             $registration->execute([
                 ':current_class_id' => $v['current_class_id'], ':school_id' => $v['school_id'],
                 ':entry_level_id' => $v['entry_level_id'], ':specialty_id' => $v['specialty_id'],
-                ':remark' => $v['remark'], ':id' => $id, ':event_id' => $this->eventId,
+                ':remark' => $v['remark'],':preferred_date' => $v['preferred_date'],
+                ':preferred_time' => $v['preferred_time'], ':id' => $id, ':event_id' => $this->eventId,
             ]);
             $visitorId = $registration->fetchColumn();
             if ($visitorId === false) {
@@ -292,6 +299,7 @@ final class Repository
             ':visitor_id' => $visitorId, ':event_id' => $this->eventId,
             ':current_class_id' => $v['current_class_id'], ':school_id' => $v['school_id'],
             ':entry_level_id' => $v['entry_level_id'], ':specialty_id' => $v['specialty_id'], ':remark' => $v['remark'],
+            ':preferred_date' => $v['preferred_date'], ':preferred_time' => $v['preferred_time'],
         ];
         $pick = $pdo->prepare(
             'SELECT appointment_date, time_slot_id, time_slot_label, advisor_id
@@ -301,9 +309,9 @@ final class Repository
         $insert = $pdo->prepare(
             'INSERT INTO registrations
                 (visitor_id, event_id, current_class_id, school_id, entry_level_id, specialty_id, remark,
-                 appointment_date, time_slot_id, advisor_id)
+                 preferred_date, preferred_time, appointment_date, time_slot_id, advisor_id)
              VALUES (:visitor_id, :event_id, :current_class_id, :school_id, :entry_level_id, :specialty_id, :remark,
-                 :appointment_date, :time_slot_id, :advisor_id)
+                 :preferred_date, :preferred_time, :appointment_date, :time_slot_id, :advisor_id)
              ON CONFLICT ON CONSTRAINT registrations_slot_uq DO NOTHING RETURNING id'
         );
         // Si un autre visiteur prend le même créneau en même temps, le DO NOTHING ne renvoie rien :

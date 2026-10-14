@@ -5,10 +5,10 @@ use Psr\Http\Message\ResponseInterface;
 use Slim\Psr7\Response;
 final class Json
 {
-    public static function send(array $payload, int $status = 200): ResponseInterface
+    public static function send(array $payload, int $status = 200, int $flags = 0): ResponseInterface
     {
         $response = new Response($status);
-        $response->getBody()->write(json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
+        $response->getBody()->write(json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | $flags));
         return $response->withHeader('Content-Type', 'application/json; charset=utf-8')->withHeader('Cache-Control', 'no-store');
     }
     public static function error(string $code, string $message, int $status, array $fields = []): ResponseInterface
