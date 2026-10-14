@@ -35,6 +35,8 @@ final class Validator
             'specialty_id' => self::id($body['specialty_id'] ?? null, $ids['specialties'], 'specialty_id', false, $errors),
             'remark' => self::remark($body['remark'] ?? null, $errors),
         ];
+        [$values['preferred_date'], $values['preferred_time']] =
+            self::appointment($body['preferred_date'] ?? null, $body['preferred_time'] ?? null, $today, $errors);
         return ['values' => $errors === [] ? $values : [], 'errors' => $errors];
     }
 
@@ -104,6 +106,36 @@ final class Validator
             return null;
         }
         return $raw;
+    }
+
+    /**
+     * Rendez-vous facultatif choisi dans le formulaire : date + heure ensemble, en semaine, pas dans le passé.
+     *
+     * @return array{0:?string, 1:?string}
+     */
+    private static function appointment(mixed $rawDate, mixed $rawTime, \DateTimeImmutable $today, array &$errors): array
+    {
+        $date = $rawDate === '' ? null : $rawDate;
+        $time = $rawTime === '' ? null : $rawTime;
+        if ($date === null && $time === null) {
+            return [null, null];
+        }
+        $d = is_string($date) ? \DateTimeImmutable::createFromFormat('!Y-m-d', $date, $today->getTimezone()) : false;
+        if ($date === null) {
+            $errors['preferred_date'] = 'Choisissez une date.';
+        } elseif ($d === false || $d->format('Y-m-d') !== $date) {
+            $errors['preferred_date'] = 'Date de rendez-vous invalide.';
+        } elseif ((int)$d->format('N') >= 6) {
+            $errors['preferred_date'] = 'Choisissez un jour du lundi au vendredi.';
+        } elseif ($d < $today) {
+            $errors['preferred_date'] = 'La date ne peut pas être dans le passé.';
+        }
+        if ($time === null) {
+            $errors['preferred_time'] = 'Choisissez une heure.';
+        } elseif (!is_string($time) || !preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $time)) {
+            $errors['preferred_time'] = 'Heure de rendez-vous invalide.';
+        }
+        return isset($errors['preferred_date']) || isset($errors['preferred_time']) ? [null, null] : [$date, $time];
     }
 
     private static function remark(mixed $raw, array &$errors): string
