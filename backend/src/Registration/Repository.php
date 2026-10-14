@@ -178,14 +178,16 @@ final class Repository
             $registration = $pdo->prepare(
                 'UPDATE registrations
                  SET current_class_id = :current_class_id, school_id = :school_id,
-                     entry_level_id = :entry_level_id, specialty_id = :specialty_id, remark = :remark
+                     entry_level_id = :entry_level_id, specialty_id = :specialty_id, remark = :remark,
+                      preferred_date = :preferred_date, preferred_time = :preferred_time
                  WHERE id = :id AND event_id = :event_id
                  RETURNING visitor_id'
             );
             $registration->execute([
                 ':current_class_id' => $v['current_class_id'], ':school_id' => $v['school_id'],
                 ':entry_level_id' => $v['entry_level_id'], ':specialty_id' => $v['specialty_id'],
-                ':remark' => $v['remark'], ':id' => $id, ':event_id' => $this->eventId,
+                ':remark' => $v['remark'],':preferred_date' => $v['preferred_date'],
+                ':preferred_time' => $v['preferred_time'], ':id' => $id, ':event_id' => $this->eventId,
             ]);
             $visitorId = $registration->fetchColumn();
             if ($visitorId === false) {

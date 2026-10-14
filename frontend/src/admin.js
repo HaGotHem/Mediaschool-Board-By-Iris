@@ -155,7 +155,7 @@ function visitRow(v) {
   const school = el("td", "", v.school);
 
   const level = el("td");
-  level.append(el("span", "badge badge-outline badge-secondary", v.level));
+  level.append(el("span", "badge badge-outline badge-secondary w-full h-full", v.level));
 
   const appointment = el(
     "td",
@@ -271,6 +271,8 @@ async function startEdit() {
     school_id: r.school_id,
     entry_level_id: r.entry_level_id,
     specialty_id: r.specialty_id,
+    preferred_date: r.preferred_date,
+    preferred_time: r.preferred_time,
     remark: r.remark,
   };
   for (const [name, value] of Object.entries(values))
