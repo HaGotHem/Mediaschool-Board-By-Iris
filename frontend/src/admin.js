@@ -288,8 +288,10 @@ async function startEdit() {
 
 const confirmDialog = document.querySelector("#confirm-dialog");
 
-function askConfirmation(name) {
-  document.querySelector("#confirm-name").textContent = name;
+function askConfirmation(visit) {
+  document.querySelector("#confirm-id").textContent = visit.id;
+  document.querySelector("#confirm-last-name").textContent = visit.last_name || "—";
+  document.querySelector("#confirm-first-name").textContent = visit.first_name || "—";
   return new Promise((resolve) => {
     confirmDialog.returnValue = "";
     confirmDialog.addEventListener(
@@ -302,9 +304,7 @@ function askConfirmation(name) {
 }
 
 async function startSupp(visit) {
-  const name = `${visit.first_name} ${visit.last_name}`.trim();
-
-  if (!(await askConfirmation(name))) 
+  if (!(await askConfirmation(visit)))
     return;
 
   const button = document.querySelector("#infosupprimer");
