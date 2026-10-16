@@ -122,13 +122,15 @@ final class Repository
             "SELECT r.id, v.last_name, v.first_name, v.birth_date, v.phone, v.email,
                     r.current_class_id, cc.label AS current_class, r.school_id, s.label AS school,
                     r.entry_level_id, l.label AS entry_level, r.specialty_id, sp.label AS specialty,
-                    r.remark, r.created_at, r.preferred_date, r.preferred_time
+                    r.remark, r.created_at, r.preferred_date, r.preferred_time,
+                    r.advisor_name, COALESCE(r.advisor_name, a.label) AS advisor
              FROM registrations r
              JOIN visitors v ON v.id = r.visitor_id
              JOIN schools s ON s.id = r.school_id
              JOIN entry_levels l ON l.id = r.entry_level_id
              LEFT JOIN current_classes cc ON cc.id = r.current_class_id
              LEFT JOIN specialties sp ON sp.id = r.specialty_id
+             LEFT JOIN advisors a ON a.id = r.advisor_id
              WHERE r.id = :id AND r.event_id = :event_id"
         );
         $select->bindValue(':id', $id, PDO::PARAM_INT);
@@ -158,6 +160,9 @@ final class Repository
             'remark' => $row['remark'],
             'preferred_date' => $row['preferred_date'] ?? null,
             'preferred_time' => $row['preferred_time'] ?? null,
+            // advisor_name : saisie admin ; advisor : ce qu'on affiche (saisie, sinon conseiller du créneau)
+            'advisor_name' => $row['advisor_name'],
+            'advisor' => $row['advisor'],
             'registered_at' => (new \DateTimeImmutable($row['created_at']))
                 ->setTimezone(new \DateTimeZone('Europe/Paris'))->format(DATE_ATOM),
         ];
@@ -167,10 +172,11 @@ final class Repository
      * Modifie une inscription du salon actif et son visiteur. Créneau, conseiller et salon ne bougent pas.
      *
      * @param array<string,mixed> $v valeurs validées par Validator
+     * @param ?string $advisorName nom du conseiller saisi par l'admin (null pour l'effacer)
      * @return bool false si la fiche est absente ou d'un autre salon
      * @throws PDOException 23505 si l'e-mail appartient déjà à un autre visiteur
      */
-    public function update(int $id, array $v): bool
+    public function update(int $id, array $v, ?string $advisorName = null): bool
     {
         $pdo = $this->db->pdo;
         $pdo->beginTransaction();
@@ -179,7 +185,8 @@ final class Repository
                 'UPDATE registrations
                  SET current_class_id = :current_class_id, school_id = :school_id,
                      entry_level_id = :entry_level_id, specialty_id = :specialty_id, remark = :remark,
-                      preferred_date = :preferred_date, preferred_time = :preferred_time
+                      preferred_date = :preferred_date, preferred_time = :preferred_time,
+                      advisor_name = :advisor_name
                  WHERE id = :id AND event_id = :event_id
                  RETURNING visitor_id'
             );
@@ -187,7 +194,8 @@ final class Repository
                 ':current_class_id' => $v['current_class_id'], ':school_id' => $v['school_id'],
                 ':entry_level_id' => $v['entry_level_id'], ':specialty_id' => $v['specialty_id'],
                 ':remark' => $v['remark'],':preferred_date' => $v['preferred_date'],
-                ':preferred_time' => $v['preferred_time'], ':id' => $id, ':event_id' => $this->eventId,
+                ':preferred_time' => $v['preferred_time'], ':advisor_name' => $advisorName,
+                ':id' => $id, ':event_id' => $this->eventId,
             ]);
             $visitorId = $registration->fetchColumn();
             if ($visitorId === false) {

@@ -113,6 +113,7 @@ function normalize(r) {
     specialty: label(r, "specialty"),
     remark: r.remark ?? "",
     appointment: formatAppointment(r.preferred_date, r.preferred_time),
+    advisor: r.advisor ?? "",
   };
 }
 // ---------------------------------------------------------
@@ -207,6 +208,7 @@ function openDetails(v) {
     ["Niveau", v.level],
     ["Spécialité", v.specialty],
     ["RDV souhaité", v.appointment],
+    ["Conseiller", v.advisor],
     ["Remarque", v.remark || "—"],
   ];
   const dl = document.querySelector("#visit-details");
@@ -272,7 +274,8 @@ async function startEdit() {
     entry_level_id: r.entry_level_id,
     specialty_id: r.specialty_id,
     preferred_date: r.preferred_date,
-    preferred_time: r.preferred_time,
+    preferred_time: r.preferred_time?.slice(0, 5), // « 14:30:00 » -> « 14:30 » pour l'input time
+    advisor_name: r.advisor_name,
     remark: r.remark,
   };
   for (const [name, value] of Object.entries(values))

@@ -66,15 +66,25 @@ return static function (App $app, Closure $db): void {
                 return Json::error('INVALID_JSON', 'Corps de requête invalide.', 400);
             }
 
+            // Nom du conseiller : réservé à l'admin, donc hors du Validator partagé avec le formulaire public
+            $rawAdvisor = $body['advisor_name'] ?? null;
+            unset($body['advisor_name']);
+            $advisorName = is_string($rawAdvisor) ? trim($rawAdvisor) : null;
+            $advisorError = ($rawAdvisor !== null && !is_string($rawAdvisor))
+                || ($advisorName !== null && (mb_strlen($advisorName) > 100 || preg_match('/\p{Cc}/u', $advisorName)));
+
             $repo = new Repository($db(), (int)(getenv('EVENT_ID') ?: 1));
             $today = new DateTimeImmutable('today', new DateTimeZone('Europe/Paris'));
             ['values' => $values, 'errors' => $errors] = Validator::validate($body, $repo->referenceIds(), $today);
+            if ($advisorError) {
+                $errors['advisor_name'] = 'Nom du conseiller invalide (100 caractères maximum).';
+            }
             if ($errors !== []) {
                 return Json::error('VALIDATION_FAILED', 'Corrigez les champs indiqués.', 422, $errors);
             }
 
             try {
-                $updated = $repo->update((int)$args['id'], $values);
+                $updated = $repo->update((int)$args['id'], $values, $advisorName === '' ? null : $advisorName);
             } catch (PDOException $e) {
                 if (($e->errorInfo[0] ?? '') === '23505') { // e-mail déjà utilisé par un autre visiteur
                     return Json::error('VALIDATION_FAILED', 'Corrigez les champs indiqués.', 422,
@@ -153,7 +163,7 @@ return static function (App $app, Closure $db): void {
                            cc.label AS current_class, s.label AS school, el.label AS entry_level,
                            sp.label AS specialty, r.remark,
                            to_char(r.appointment_date, 'DD/MM/YYYY') AS appointment_date,
-                           ts.label AS time_slot, a.label AS advisor
+                           ts.label AS time_slot, COALESCE(r.advisor_name, a.label) AS advisor
                     FROM registrations r
                     JOIN visitors v ON v.id = r.visitor_id
                     JOIN schools s ON s.id = r.school_id

@@ -449,7 +449,19 @@
                 name="preferred_time"
               />
             </div>
-            <div class="sm:col-span-2">
+            <div class="col-span-2 lg:max-w-auto">
+              <label for="edit-advisor" class="font-medium">Conseiller</label>
+              <input
+                id="edit-advisor"
+                name="advisor_name"
+                type="text"
+                class="input input-bordered w-full mt-1"
+                maxlength="100"
+                autocomplete="off"
+                placeholder="Nom du conseiller"
+              />
+            </div>
+            <div class="col-span-2 lg:max-w-auto">
               <label for="edit-remark" class="font-medium">Remarque</label>
               <textarea
                 id="edit-remark"
