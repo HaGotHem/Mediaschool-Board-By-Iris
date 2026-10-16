@@ -113,6 +113,7 @@ function normalize(r) {
     specialty: label(r, "specialty"),
     remark: r.remark ?? "",
     appointment: formatAppointment(r.preferred_date, r.preferred_time),
+    advisor: r.advisor ?? "",
   };
 }
 // ---------------------------------------------------------
@@ -207,6 +208,7 @@ function openDetails(v) {
     ["Niveau", v.level],
     ["Spécialité", v.specialty],
     ["RDV souhaité", v.appointment],
+    ["Conseiller", v.advisor],
     ["Remarque", v.remark || "—"],
   ];
   const dl = document.querySelector("#visit-details");
@@ -272,7 +274,8 @@ async function startEdit() {
     entry_level_id: r.entry_level_id,
     specialty_id: r.specialty_id,
     preferred_date: r.preferred_date,
-    preferred_time: r.preferred_time,
+    preferred_time: r.preferred_time?.slice(0, 5), // « 14:30:00 » -> « 14:30 » pour l'input time
+    advisor_name: r.advisor_name,
     remark: r.remark,
   };
   for (const [name, value] of Object.entries(values))
@@ -285,8 +288,10 @@ async function startEdit() {
 
 const confirmDialog = document.querySelector("#confirm-dialog");
 
-function askConfirmation(name) {
-  document.querySelector("#confirm-name").textContent = name;
+function askConfirmation(visit) {
+  document.querySelector("#confirm-id").textContent = visit.id;
+  document.querySelector("#confirm-last-name").textContent = visit.last_name || "—";
+  document.querySelector("#confirm-first-name").textContent = visit.first_name || "—";
   return new Promise((resolve) => {
     confirmDialog.returnValue = "";
     confirmDialog.addEventListener(
@@ -299,9 +304,7 @@ function askConfirmation(name) {
 }
 
 async function startSupp(visit) {
-  const name = `${visit.first_name} ${visit.last_name}`.trim();
-
-  if (!(await askConfirmation(name))) 
+  if (!(await askConfirmation(visit)))
     return;
 
   const button = document.querySelector("#infosupprimer");
