@@ -75,7 +75,7 @@ final class Repository
         // Tri serveur fixe ; id en second critère pour une pagination stable.
         $select = $pdo->prepare(
             "SELECT r.id, v.last_name, v.first_name, s.label AS school, l.label AS entry_level, r.created_at,
-                    r.preferred_date, r.preferred_time
+                    r.preferred_date, r.preferred_time, r.advisor_name
              FROM registrations r
              JOIN visitors v ON v.id = r.visitor_id
              JOIN schools s ON s.id = r.school_id
@@ -100,6 +100,7 @@ final class Repository
             'entry_level' => $row['entry_level'],
             'preferred_date' => $row['preferred_date'],
             'preferred_time' => $row['preferred_time'],
+            'advisor_name' => $row['advisor_name'] ?? null,
             'registered_at' => (new \DateTimeImmutable($row['created_at']))->setTimezone($paris)->format(DATE_ATOM),
         ], $select->fetchAll(PDO::FETCH_ASSOC));
 
@@ -122,7 +123,7 @@ final class Repository
             "SELECT r.id, v.last_name, v.first_name, v.birth_date, v.phone, v.email,
                     r.current_class_id, cc.label AS current_class, r.school_id, s.label AS school,
                     r.entry_level_id, l.label AS entry_level, r.specialty_id, sp.label AS specialty,
-                    r.remark, r.created_at, r.preferred_date, r.preferred_time
+                    r.remark, r.created_at, r.preferred_date, r.preferred_time, r.advisor_name
              FROM registrations r
              JOIN visitors v ON v.id = r.visitor_id
              JOIN schools s ON s.id = r.school_id
@@ -158,6 +159,7 @@ final class Repository
             'remark' => $row['remark'],
             'preferred_date' => $row['preferred_date'] ?? null,
             'preferred_time' => $row['preferred_time'] ?? null,
+            'advisor_name' => $row['advisor_name'] ?? null,
             'registered_at' => (new \DateTimeImmutable($row['created_at']))
                 ->setTimezone(new \DateTimeZone('Europe/Paris'))->format(DATE_ATOM),
         ];
@@ -176,19 +178,27 @@ final class Repository
         $pdo->beginTransaction();
         try {
             $registration = $pdo->prepare(
-                'UPDATE registrations
-                 SET current_class_id = :current_class_id, school_id = :school_id,
-                     entry_level_id = :entry_level_id, specialty_id = :specialty_id, remark = :remark,
-                      preferred_date = :preferred_date, preferred_time = :preferred_time
-                 WHERE id = :id AND event_id = :event_id
-                 RETURNING visitor_id'
-            );
-            $registration->execute([
-                ':current_class_id' => $v['current_class_id'], ':school_id' => $v['school_id'],
-                ':entry_level_id' => $v['entry_level_id'], ':specialty_id' => $v['specialty_id'],
-                ':remark' => $v['remark'],':preferred_date' => $v['preferred_date'],
-                ':preferred_time' => $v['preferred_time'], ':id' => $id, ':event_id' => $this->eventId,
-            ]);
+            'UPDATE registrations
+            SET current_class_id = :current_class_id, school_id = :school_id,
+                entry_level_id = :entry_level_id, specialty_id = :specialty_id,
+                remark = :remark,
+                preferred_date = :preferred_date, preferred_time = :preferred_time,
+                advisor_name = :advisor_name
+            WHERE id = :id AND event_id = :event_id
+            RETURNING visitor_id'
+        );
+        $registration->execute([
+            ':current_class_id' => $v['current_class_id'],
+            ':school_id'        => $v['school_id'],
+            ':entry_level_id'   => $v['entry_level_id'],
+            ':specialty_id'     => $v['specialty_id'],
+            ':remark'           => $v['remark'] ?? null,
+            ':preferred_date'   => $v['preferred_date'] ?? null,
+            ':preferred_time'   => $v['preferred_time'] ?? null,
+            ':advisor_name'     => $v['advisor_name'] ?? null,
+            ':id'               => $id,
+            ':event_id'         => $this->eventId,
+        ]);
             $visitorId = $registration->fetchColumn();
             if ($visitorId === false) {
                 $pdo->rollBack();
@@ -300,6 +310,7 @@ final class Repository
             ':current_class_id' => $v['current_class_id'], ':school_id' => $v['school_id'],
             ':entry_level_id' => $v['entry_level_id'], ':specialty_id' => $v['specialty_id'], ':remark' => $v['remark'],
             ':preferred_date' => $v['preferred_date'], ':preferred_time' => $v['preferred_time'],
+            ':advisor_name' => $v['advisor_name'] ?? null,
         ];
         $pick = $pdo->prepare(
             'SELECT appointment_date, time_slot_id, time_slot_label, advisor_id
