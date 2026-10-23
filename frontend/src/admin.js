@@ -18,6 +18,7 @@ const emptyState = body.innerHTML; // état « Aucune visite chargée » du HTML
 const searchInput = document.querySelector("#filter-search");
 const schoolSelect = document.querySelector("#filter-school");
 const dialog = document.querySelector("#visit-dialog");
+const meetingDialog = document.querySelector("#meeting-modal");
 let visits = [];
 
 /* ---------- Session et statistiques ---------- */
@@ -113,6 +114,8 @@ function normalize(r) {
     specialty: label(r, "specialty"),
     remark: r.remark ?? "",
     appointment: formatAppointment(r.preferred_date, r.preferred_time),
+    appointmentDate: r.preferred_date ?? "",
+    appointmentTime: r.preferred_time ?? "",
     advisor: r.advisor ?? "",
   };
 }
@@ -153,18 +156,28 @@ function visitRow(v) {
   );
   who.append(el("div", "text-sm text-base-content/70", v.email));
 
+  // data-label : intitulé affiché au-dessus de la valeur en vue mobile (cartes)
   const school = el("td", "", v.school);
+  school.dataset.label = "École visée";
 
   const level = el("td");
-  level.append(el("span", "badge badge-outline badge-secondary w-full h-full", v.level));
+  level.dataset.label = "Niveau";
+  level.append(
+    el(
+      "span",
+      "badge badge-outline badge-secondary h-auto min-h-6 py-1 text-center",
+      v.level,
+    ),
+  );
 
   const appointment = el(
     "td",
     v.appointment ? "whitespace-nowrap" : "text-base-content/50",
     v.appointment || "—",
   );
+  appointment.dataset.label = "RDV souhaité";
 
-  const actions = el("td", "text-right");
+  const actions = el("td", "visit-actions text-right whitespace-nowrap");
   const btn = el("button", "btn btn-ghost btn-sm text-secondary", "Voir");
   btn.type = "button";
   btn.setAttribute(
@@ -172,11 +185,103 @@ function visitRow(v) {
     `Voir la fiche de ${v.firstName} ${v.lastName}`,
   );
   btn.addEventListener("click", () => showVisit(v, btn));
-  actions.append(btn);
+
+  const meetingBtn = el(
+    "button",
+    "btn btn-ghost btn-sm text-secondary",
+    "Prendre RDV",
+  );
+  meetingBtn.type = "button";
+  meetingBtn.setAttribute(
+    "aria-label",
+    `Prendre un rdv avec ${v.firstName} ${v.lastName}`,
+  );
+  meetingBtn.addEventListener("click", () => openMeeting(v, meetingBtn));
+  actions.append(meetingBtn, btn);
 
   tr.append(who, school, level, appointment, actions);
   return tr;
 }
+
+// --- Prise de rendez-vous ---
+const meetingForm = document.querySelector("#meeting-form");
+const meetingConfirm = document.querySelector("#meeting-confirm");
+const meetingMessage =document.querySelector("#meeting-message");
+const meetingSave = document.querySelector("#meeting-save");
+let meetingVisit = null; // fiche brute de l'API : le PATCH exige tous les champs de la fiche
+
+async function openMeeting(v, button) {
+  button.disabled = true;
+  try {
+    meetingVisit = await api(`/admin/registrations/${v.id}`);
+  } catch (error) {
+    if (error.status === 401) display(null);
+    showMessage(message, error.message);
+    return;
+  } finally {
+    button.disabled = false;
+  }
+  document.querySelector("#meeting-name").textContent =
+    `${v.firstName} ${v.lastName}`.trim();
+  // Les inputs date/time attendent « AAAA-MM-JJ » et « HH:MM »
+  meetingForm.elements.preferred_date.value = meetingVisit.preferred_date ?? "";
+  meetingForm.elements.preferred_time.value =
+    meetingVisit.preferred_time?.slice(0, 5) ?? "";
+  meetingMessage.hidden = true;
+  meetingDialog.showModal();
+}
+
+meetingForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!meetingForm.reportValidity()) return;
+
+  const r = meetingVisit;
+  meetingSave.disabled = true;
+  try {
+    const updated = await api(`/admin/registrations/${r.id}`, {
+      method: "PATCH",
+      body: {
+        last_name: r.last_name,
+        first_name: r.first_name,
+        birth_date: r.birth_date,
+        phone: r.phone,
+        email: r.email,
+        current_class_id: r.current_class_id,
+        school_id: r.school_id,
+        entry_level_id: r.entry_level_id,
+        specialty_id: r.specialty_id,
+        remark: r.remark,
+        advisor_name: r.advisor_name,
+        preferred_date: meetingForm.elements.preferred_date.value,
+        preferred_time: meetingForm.elements.preferred_time.value,
+      },
+    });
+    visits = visits.map((v) => (v.id === updated.id ? normalize(updated) : v));
+    render();
+    meetingDialog.close();
+    document.querySelector("#meeting-confirm-name").textContent =
+      `${updated.first_name} ${updated.last_name}`.trim() || "—";
+    document.querySelector("#meeting-confirm-date").textContent = formatDate(
+      updated.preferred_date,
+    );
+    document.querySelector("#meeting-confirm-time").textContent = updated.preferred_time
+      .slice(0, 5)
+      .replace(":", "h");
+    meetingConfirm.showModal();
+  } catch (error) {
+    if (error.status === 401) {
+      meetingDialog.close();
+      display(null);
+      showMessage(message, error.message);
+      return;
+    }
+    // Le serveur détaille le champ fautif (jour de week-end, date passée…)
+    const detail = Object.values(error.fields ?? {}).join(" ");
+    showMessage(meetingMessage, detail || error.message);
+  } finally {
+    meetingSave.disabled = false;
+  }
+});
 
 function render() {
   const q = searchInput.value.trim().toLowerCase();
@@ -214,8 +319,15 @@ function openDetails(v) {
   const dl = document.querySelector("#visit-details");
   dl.replaceChildren();
   for (const [name, value] of fields) {
-    dl.append(el("dt", "text-base-content/70", name));
-    dl.append(el("dd", "col-span-2 font-medium break-words", value || "—"));
+    // Mobile : intitulé au-dessus de la valeur ; à partir de sm : deux colonnes
+    dl.append(el("dt", "text-xs sm:text-sm text-base-content/70", name));
+    dl.append(
+      el(
+        "dd",
+        "mb-3 sm:mb-0 sm:col-span-2 font-medium wrap-anywhere",
+        value || "—",
+      ),
+    );
   }
   setEditMode(false);
   if (!dialog.open) dialog.showModal();

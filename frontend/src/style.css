@@ -59,3 +59,46 @@ label {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
+
+/* Tableau des visites : sous 768px, chaque ligne devient une carte */
+@media (width < 48rem) {
+  .visits-table,
+  .visits-table tbody {
+    display: block;
+  }
+  .visits-table thead {
+    display: none;
+  }
+  .visits-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem 1rem;
+    padding: 1rem;
+  }
+  .visits-table td {
+    padding: 0;
+    overflow-wrap: anywhere;
+  }
+  /* Visiteur, école, actions et messages sur toute la largeur */
+  .visits-table td:nth-child(-n + 2),
+  .visits-table td[colspan],
+  .visits-table .visit-actions {
+    grid-column: 1 / -1;
+  }
+  .visits-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+  }
+  .visits-table .visit-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .visits-table .visit-actions .btn {
+    flex: 1;
+    border-color: var(--color-base-300);
+  }
+}
