@@ -187,7 +187,7 @@
 
         <!-- Liste des visites -->
         <div class="card bg-base-100 shadow-md">
-          <div class="card-body gap-5">
+          <div class="card-body gap-5 p-4 sm:p-6">
             <div class="flex flex-wrap items-center justify-between gap-3">
               <h3 class="card-title">Liste des visites</h3>
               <div class="flex flex-wrap gap-2">
@@ -237,14 +237,15 @@
             </div>
 
             <div class="overflow-x-auto rounded-box border border-base-300">
-              <table class="table">
+              <!-- visits-table : affichage en cartes sur mobile (voir style.css) -->
+              <table class="table visits-table">
                 <thead class="bg-base-200">
                   <tr>
                     <th>Visiteur</th>
                     <th>École visée</th>
                     <th>Niveau</th>
                     <th>RDV souhaité</th>
-                    <th class="text-right">Détails</th>
+                    <th class="text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody id="visits-body">
@@ -277,27 +278,30 @@
     </main>
 
     <!-- Fiche détaillée d'une visite -->
-    <dialog id="visit-dialog" class="modal">
-      <div class="modal-box max-w-2xl">
-        <h3 id="visit-title" class="text-lg font-bold text-secondary"></h3>
+    <!-- Mobile : panneau plein largeur en bas de l'écran ; à partir de sm : modal centrée -->
+    <dialog id="visit-dialog" class="modal modal-bottom sm:modal-middle">
+      <div class="modal-box p-4 sm:p-6 sm:max-w-2xl">
+        <h3
+          id="visit-title"
+          class="text-lg font-bold text-secondary pr-2 wrap-anywhere"
+        ></h3>
         <div id="visit-message" role="alert" hidden></div>
 
         <!-- Mode lecture -->
         <div id="visit-view">
           <dl
             id="visit-details"
-            class="mt-4 grid grid-cols-3 gap-x-4 gap-y-3 text-sm"
+            class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-x-4 sm:gap-y-3 text-sm"
           ></dl>
-          <div class="modal-action">
-            <button class="btn btn-warning"
-            id="infosupprimer" type="button">
+          <div class="modal-action grid grid-cols-2 sm:flex">
+            <button class="btn btn-warning" id="infosupprimer" type="button">
               Supprimer
             </button>
             <button class="btn btn-primary" id="infoedit" type="button">
               Modifier
             </button>
-            <form method="dialog">
-              <button class="btn btn-secondary">Fermer</button>
+            <form method="dialog" class="col-span-2">
+              <button class="btn btn-secondary w-full">Fermer</button>
             </form>
           </div>
         </div>
@@ -438,25 +442,29 @@
                 <option value="">Je ne sais pas encore</option>
               </select>
             </div>
-            <div class="flex flex-col">
-              <label for="preferred-date">Date souhaitée</label>
+            <div>
+              <label for="preferred-date" class="font-medium"
+                >Date souhaitée</label
+              >
               <input
-                class="input mt-1"
+                class="input input-bordered w-full mt-1"
                 type="date"
                 id="preferred-date"
                 name="preferred_date"
               />
             </div>
-            <div class="flex flex-col">
-                <label for="preferred-time">Heure souhaitée</label
-                ><input
-                class="input mt-1"
+            <div>
+              <label for="preferred-time" class="font-medium"
+                >Heure souhaitée</label
+              >
+              <input
+                class="input input-bordered w-full mt-1"
                 type="time"
                 id="preferred-time"
                 name="preferred_time"
               />
             </div>
-            <div class="col-span-2 lg:max-w-auto">
+            <div class="sm:col-span-2">
               <label for="edit-advisor" class="font-medium">Conseiller</label>
               <input
                 id="edit-advisor"
@@ -468,7 +476,7 @@
                 placeholder="Nom du conseiller"
               />
             </div>
-            <div class="col-span-2 lg:max-w-auto">
+            <div class="sm:col-span-2">
               <label for="edit-remark" class="font-medium">Remarque</label>
               <textarea
                 id="edit-remark"
@@ -479,7 +487,7 @@
               ></textarea>
             </div>
           </div>
-          <div class="modal-action">
+          <div class="modal-action grid grid-cols-2 sm:flex">
             <button id="visit-cancel" class="btn btn-ghost" type="button">
               Annuler
             </button>
@@ -492,7 +500,7 @@
       <form method="dialog" class="modal-backdrop">
         <button aria-label="Fermer">fermer</button>
       </form>
-        </dialog>
+    </dialog>
 
     <!-- Envoi du récapitulatif par e-mail -->
     <dialog id="send-dialog" class="modal">
@@ -567,7 +575,74 @@
         <button aria-label="Fermer">fermer</button>
       </form>
     </dialog>
-  
+    <dialog id="meeting-modal" class="modal">
+      <div class="modal-box max-w-md">
+        <h3 class="text-lg font-bold text-secondary">Rendez-vous</h3>
+        <p id="meeting-name" class="text-sm text-base-content/70 mt-1"></p>
+        <div id="meeting-message" class="alert alert-error mt-4" role="alert" hidden></div>
+        <form id="meeting-form" class="mt-4" novalidate>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex flex-col">
+              <label for="meeting-date">Date</label>
+              <input
+                class="input mt-1"
+                type="date"
+                id="meeting-date"
+                name="preferred_date"
+                required
+              />
+            </div>
+            <div class="flex flex-col">
+              <label for="meeting-time">Heure</label>
+              <input
+                class="input mt-1"
+                type="time"
+                id="meeting-time"
+                name="preferred_time"
+                required
+              />
+            </div>
+          </div>
+        </form>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn">Fermer</button>
+          </form>
+          <button id="meeting-save" type="submit" form="meeting-form" class="btn btn-secondary">
+            Enregistrer
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button aria-label="Fermer">fermer</button>
+      </form>
+    </dialog>
+
+    <!-- Confirmation une fois le rendez-vous enregistré -->
+    <dialog id="meeting-confirm" class="modal">
+      <div class="modal-box max-w-sm">
+        <h3 class="text-lg font-bold text-secondary">Rendez-vous confirmé</h3>
+        <dl class="mt-4 grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
+          <dt class="text-base-content/60">Visiteur</dt>
+          <dd id="meeting-confirm-name" class="col-span-2 font-medium"></dd>
+          <dt class="text-base-content/60">Date</dt>
+          <dd id="meeting-confirm-date" class="col-span-2 font-medium"></dd>
+          <dt class="text-base-content/60">Heure</dt>
+          <dd id="meeting-confirm-time" class="col-span-2 font-medium"></dd>
+        </dl>
+        <p class="mt-4 text-sm text-success">
+          Le rendez-vous a bien été enregistré.
+        </p>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn btn-secondary" autofocus>OK</button>
+          </form>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button aria-label="Fermer">fermer</button>
+      </form>
+    </dialog>
 
     <script type="module" src="/src/admin.js"></script>
   </body>
