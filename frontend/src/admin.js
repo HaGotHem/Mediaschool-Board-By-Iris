@@ -142,7 +142,7 @@ function el(tag, className, text) {
 function messageRow(text) {
   const tr = el("tr");
   const td = el("td", "py-10 text-center text-base-content/70", text);
-  td.colSpan = 5;
+  td.colSpan = 6;
   tr.append(td);
   return tr;
 }
@@ -177,6 +177,9 @@ function visitRow(v) {
   );
   appointment.dataset.label = "RDV souhaité";
 
+  const advisor = el("td", v.advisor ? "" : "text-base-content/50", v.advisor || "—");
+  advisor.dataset.label = "Conseiller";
+
   const actions = el("td", "visit-actions text-right whitespace-nowrap");
   const btn = el("button", "btn btn-ghost btn-sm text-secondary", "Voir");
   btn.type = "button";
@@ -199,7 +202,7 @@ function visitRow(v) {
   meetingBtn.addEventListener("click", () => openMeeting(v, meetingBtn));
   actions.append(meetingBtn, btn);
 
-  tr.append(who, school, level, appointment, actions);
+  tr.append(who, school, level, appointment, advisor, actions);
   return tr;
 }
 
@@ -227,6 +230,7 @@ async function openMeeting(v, button) {
   meetingForm.elements.preferred_date.value = meetingVisit.preferred_date ?? "";
   meetingForm.elements.preferred_time.value =
     meetingVisit.preferred_time?.slice(0, 5) ?? "";
+  meetingForm.elements.advisor_name.value = meetingVisit.advisor_name ?? "";
   meetingMessage.hidden = true;
   meetingDialog.showModal();
 }
@@ -251,7 +255,7 @@ meetingForm.addEventListener("submit", async (event) => {
         entry_level_id: r.entry_level_id,
         specialty_id: r.specialty_id,
         remark: r.remark,
-        advisor_name: r.advisor_name,
+        advisor_name: meetingForm.elements.advisor_name.value,
         preferred_date: meetingForm.elements.preferred_date.value,
         preferred_time: meetingForm.elements.preferred_time.value,
       },
@@ -267,6 +271,8 @@ meetingForm.addEventListener("submit", async (event) => {
     document.querySelector("#meeting-confirm-time").textContent = updated.preferred_time
       .slice(0, 5)
       .replace(":", "h");
+    document.querySelector("#meeting-confirm-advisor").textContent =
+      updated.advisor_name || "—";
     meetingConfirm.showModal();
   } catch (error) {
     if (error.status === 401) {
