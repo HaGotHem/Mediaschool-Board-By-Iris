@@ -75,11 +75,12 @@ final class Repository
         // Tri serveur fixe ; id en second critère pour une pagination stable.
         $select = $pdo->prepare(
             "SELECT r.id, v.last_name, v.first_name, s.label AS school, l.label AS entry_level, r.created_at,
-                    r.preferred_date, r.preferred_time
+                    r.preferred_date, r.preferred_time, COALESCE(r.advisor_name, a.label) AS advisor
              FROM registrations r
              JOIN visitors v ON v.id = r.visitor_id
              JOIN schools s ON s.id = r.school_id
              JOIN entry_levels l ON l.id = r.entry_level_id
+             LEFT JOIN advisors a ON a.id = r.advisor_id
              WHERE $where
              ORDER BY r.created_at DESC, r.id DESC
              LIMIT :limit OFFSET :offset"
@@ -100,6 +101,7 @@ final class Repository
             'entry_level' => $row['entry_level'],
             'preferred_date' => $row['preferred_date'],
             'preferred_time' => $row['preferred_time'],
+            'advisor' => $row['advisor'],
             'registered_at' => (new \DateTimeImmutable($row['created_at']))->setTimezone($paris)->format(DATE_ATOM),
         ], $select->fetchAll(PDO::FETCH_ASSOC));
 

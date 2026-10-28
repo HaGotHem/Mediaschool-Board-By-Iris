@@ -158,7 +158,9 @@
               </div>
             </div>
           </div>
-          <div class="card bg-base-100 shadow-sm border-l-4 border-base-content">
+          <div
+            class="card bg-base-100 shadow-sm border-l-4 border-base-content"
+          >
             <div class="card-body flex-row items-center gap-4 p-5">
               <div class="rounded-full bg-accent/10 text-accent p-3">
                 <svg
@@ -245,12 +247,13 @@
                     <th>École visée</th>
                     <th>Niveau</th>
                     <th>RDV souhaité</th>
+                    <th>Conseiller</th>
                     <th class="text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody id="visits-body">
                   <tr>
-                    <td colspan="5">
+                    <td colspan="6">
                       <div
                         class="flex flex-col items-center gap-3 py-10 text-center"
                       >
@@ -309,7 +312,9 @@
         <!-- Confirmation de suppression -->
         <dialog id="confirm-dialog" class="modal">
           <div class="modal-box max-w-sm">
-            <h3 class="text-lg font-bold text-secondary">Supprimer cet inscrit ?</h3>
+            <h3 class="text-lg font-bold text-secondary">
+              Supprimer cet inscrit ?
+            </h3>
             <dl class="mt-4 grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
               <dt class="text-base-content/60">N° d'inscription</dt>
               <dd id="confirm-id" class="col-span-2 font-medium"></dd>
@@ -323,7 +328,9 @@
             </p>
             <div class="modal-action">
               <form method="dialog" class="flex gap-2">
-                <button value="cancel" class="btn btn-ghost" autofocus>Annuler</button>
+                <button value="cancel" class="btn btn-ghost" autofocus>
+                  Annuler
+                </button>
                 <button value="confirm" class="btn btn-error">Supprimer</button>
               </form>
             </div>
@@ -579,7 +586,12 @@
       <div class="modal-box max-w-md">
         <h3 class="text-lg font-bold text-secondary">Rendez-vous</h3>
         <p id="meeting-name" class="text-sm text-base-content/70 mt-1"></p>
-        <div id="meeting-message" class="alert alert-error mt-4" role="alert" hidden></div>
+        <div
+          id="meeting-message"
+          class="alert alert-error mt-4"
+          role="alert"
+          hidden
+        ></div>
         <form id="meeting-form" class="mt-4" novalidate>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="flex flex-col">
@@ -602,13 +614,30 @@
                 required
               />
             </div>
+            <div class="sm:col-span-2">
+              <label for="edit-advisor" class="font-medium">Conseiller</label>
+              <input
+                id="edit-advisor"
+                name="advisor_name"
+                type="text"
+                class="input input-bordered w-full mt-1"
+                maxlength="100"
+                autocomplete="off"
+                placeholder="Nom du conseiller"
+              />
+            </div>
           </div>
         </form>
         <div class="modal-action">
           <form method="dialog">
             <button class="btn">Fermer</button>
           </form>
-          <button id="meeting-save" type="submit" form="meeting-form" class="btn btn-secondary">
+          <button
+            id="meeting-save"
+            type="submit"
+            form="meeting-form"
+            class="btn btn-secondary"
+          >
             Enregistrer
           </button>
         </div>
@@ -629,6 +658,8 @@
           <dd id="meeting-confirm-date" class="col-span-2 font-medium"></dd>
           <dt class="text-base-content/60">Heure</dt>
           <dd id="meeting-confirm-time" class="col-span-2 font-medium"></dd>
+          <dt class="text-base-content/60">Conseiller</dt>
+          <dd id="meeting-confirm-advisor" class="col-span-2 font-medium"></dd>
         </dl>
         <p class="mt-4 text-sm text-success">
           Le rendez-vous a bien été enregistré.
