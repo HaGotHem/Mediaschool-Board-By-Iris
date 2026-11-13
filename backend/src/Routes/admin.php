@@ -211,7 +211,7 @@ return static function (App $app, Closure $db): void {
                 ->withHeader('X-Content-Type-Options', 'nosniff');
         });
 
-        // EXP-03 : envoi du récapitulatif agrégé par e-mail (Brevo)
+        // EXP-03 : envoi du récapitulatif agrégé par e-mail (Mailjet)
 $group->post('/summary/email', function (Request $request) use ($db): Response {
     if (!str_starts_with(strtolower($request->getHeaderLine('Content-Type')), 'application/json')) {
         return Json::error('UNSUPPORTED_MEDIA_TYPE', 'Le format JSON est attendu.', 415);

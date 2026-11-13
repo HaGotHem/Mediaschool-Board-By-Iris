@@ -29,32 +29,37 @@ final class SummaryMailer
             throw new \InvalidArgumentException('Format invalide.');
         }
 
-        $apiKey = getenv('BREVO_API_KEY');
-        $from   = getenv('BREVO_SENDER_EMAIL');
-        if (!$apiKey || !$from) {
+        $apiKey    = getenv('MAILJET_API_KEY');
+        $secretKey = getenv('MAILJET_SECRET_KEY');
+        $from      = getenv('MAILJET_SENDER_EMAIL');
+        if (!$apiKey || !$secretKey || !$from) {
             throw new \RuntimeException('Service de messagerie non configuré.');
         }
 
         $payload = [
-            'sender'      => ['name' => 'Mediaschool Board by Iris Nice', 'email' => $from],
-            'to'          => [['email' => $recipient]],
-            'subject'     => 'Récapitulatif du salon — Mediaschool Board',
-            'htmlContent' => '<p>Bonjour,</p><p>Vous trouverez en pièce jointe le récapitulatif du salon.</p>',
-            'attachment'  => [[
-                'name'    => 'recap-salon.' . $format,
-                'content' => base64_encode($content),
+            'Messages' => [[
+                'From'        => ['Email' => $from, 'Name' => 'Mediaschool Board by Iris Nice'],
+                'To'          => [['Email' => $recipient]],
+                'Subject'     => 'Récapitulatif du salon — Mediaschool Board',
+                'HTMLPart'    => '<p>Bonjour,</p><p>Vous trouverez en pièce jointe le récapitulatif du salon.</p>',
+                'Attachments' => [[
+                    'ContentType'   => $format === 'pdf' ? 'application/pdf' : 'text/csv',
+                    'Filename'      => 'recap-salon.' . $format,
+                    'Base64Content' => base64_encode($content),
+                ]],
             ]],
         ];
 
-        $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+        $ch = curl_init('https://api.mailjet.com/v3.1/send');
         curl_setopt_array($ch, [
             CURLOPT_POST           => true,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 10,
+            CURLOPT_HTTPAUTH       => CURLAUTH_BASIC,
+            CURLOPT_USERPWD        => $apiKey . ':' . $secretKey,
             CURLOPT_HTTPHEADER     => [
                 'accept: application/json',
                 'content-type: application/json',
-                'api-key: ' . $apiKey,
             ],
             CURLOPT_POSTFIELDS     => json_encode($payload),
         ]);
@@ -63,9 +68,8 @@ final class SummaryMailer
         $curlErr  = curl_error($ch);
         curl_close($ch);
 
-        if ($status !== 201) {
-            // Statut 0 = aucune réponse HTTP (DNS, pare-feu sortant, TLS) : le détail est dans $curlErr.
-            error_log('Brevo error ' . $status . ' : ' . ($curlErr !== '' ? $curlErr : (string) $response));
+        if ($status !== 200) {
+            error_log('Mailjet error ' . $status . ' : ' . (string) $response);
             throw new \RuntimeException('Échec de l\'envoi du mail.');
         }
     }
