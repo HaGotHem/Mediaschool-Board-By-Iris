@@ -10,6 +10,15 @@ final class SummaryMailer
         if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
             throw new \InvalidArgumentException('Adresse invalide.');
         }
+
+        // Liste séparée par des virgules ; vide = aucune restriction.
+        $allowlist = array_filter(array_map(
+            'trim',
+            explode(',', strtolower((string) getenv('SUMMARY_RECIPIENT_ALLOWLIST')))
+        ));
+        if ($allowlist !== [] && !in_array(strtolower($recipient), $allowlist, true)) {
+            throw new \DomainException('Destinataire non autorisé.');
+        }
     }
 
     public static function send(string $recipient, string $format, string $content): void
@@ -56,6 +65,7 @@ final class SummaryMailer
         ]);
         $response = curl_exec($ch);
         $status   = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
         curl_close($ch);
 
         if ($status !== 200) {

@@ -224,8 +224,12 @@ $group->post('/summary/email', function (Request $request) use ($db): Response {
     $recipient = trim((string)($body['recipient'] ?? ''));
     $format    = (string)($body['format'] ?? 'csv');
 
-    if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+    try {
+        SummaryMailer::assertRecipient($recipient);
+    } catch (\InvalidArgumentException) {
         return Json::error('VALIDATION_FAILED', 'Adresse e-mail invalide.', 422, ['recipient' => 'Adresse invalide.']);
+    } catch (\DomainException) {
+        return Json::error('RECIPIENT_NOT_ALLOWED', 'Ce destinataire n\'est pas autorisé.', 403, ['recipient' => 'Destinataire non autorisé.']);
     }
     if (!in_array($format, ['csv', 'pdf'], true)) {
         return Json::error('VALIDATION_FAILED', 'Format invalide.', 422, ['format' => 'Format invalide.']);
